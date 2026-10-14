@@ -1,9 +1,10 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, status
 
 from app import stub_data
+from app.deps import require_buyer
 from app.schemas import PackageCreate, PackageDetail, PackageList, PackageOut
 
-router = APIRouter(prefix="/packages", tags=["packages"])
+router = APIRouter(prefix="/packages", dependencies=[Depends(require_buyer)], tags=["packages"])
 
 
 @router.post("", response_model=PackageOut, status_code=status.HTTP_201_CREATED)

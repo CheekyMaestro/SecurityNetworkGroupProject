@@ -1,14 +1,16 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, status
 
 from app import stub_data
+from app.deps import get_current_user, require_buyer, require_store
 from app.schemas import (
     ClaimCreate, ClaimCreated, ClaimDetail, ClaimList, ClaimUpdate, ReplyCreate, ReplyOut,
 )
 
-router = APIRouter(prefix="/claims", tags=["claims"])
+router = APIRouter(prefix="/claims", dependencies=[Depends(get_current_user)], tags=["claims"])
 
 
-@router.post("", response_model=ClaimCreated, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ClaimCreated, status_code=status.HTTP_201_CREATED,
+             dependencies=[Depends(require_buyer)])
 def create_claim(body: ClaimCreate):
     return {"id": 5, "status": "diajukan"}
 
@@ -23,7 +25,7 @@ def get_claim(claim_id: int):
     return {**stub_data.CLAIM_DETAIL, "id": claim_id}
 
 
-@router.patch("/{claim_id}", response_model=ClaimDetail)
+@router.patch("/{claim_id}", response_model=ClaimDetail, dependencies=[Depends(require_store)])
 def update_claim(claim_id: int, body: ClaimUpdate):
     return {**stub_data.CLAIM_DETAIL, "id": claim_id, "status": body.status}
 
