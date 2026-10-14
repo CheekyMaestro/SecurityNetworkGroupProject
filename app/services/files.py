@@ -338,6 +338,10 @@ def save_upload(db: Session, user: User, stored: _StoredFile) -> File:
         nonce, wrapped, tag = wrap_key(aes_key, stored.file_keys[w.alg])
         f.keys.append(FileKey(user_id=user.id, algorithm=w.alg, wrap_nonce=nonce, wrapped_key=wrapped, wrap_tag=tag))
     db.add(f)
+    db.flush()
+    from app.services.claims import share_new_file_with_open_claims
+
+    share_new_file_with_open_claims(db, f, user)
     db.commit()
     log.info("upload file_id=%s user_id=%s category=%s size=%d", f.id, user.id, f.category, f.size_bytes)
     return f

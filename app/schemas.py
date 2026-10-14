@@ -171,6 +171,8 @@ class StoreList(BaseModel):
 # --- Klaim ---
 
 class ClaimCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     package_id: int
     store_user_id: int
     message: str = Field(min_length=1, max_length=2000)
@@ -182,6 +184,8 @@ class ClaimUpdate(BaseModel):
 
 
 class ReplyCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     body: str = Field(min_length=1, max_length=2000)
 
 
