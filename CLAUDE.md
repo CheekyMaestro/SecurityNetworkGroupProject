@@ -33,6 +33,7 @@ app/
     sessions.py      # buat/baca JWT, set/hapus cookie
   crypto/            # modul enkripsi (bagian Anggota 2, lihat "Modul enkripsi")
     aes.py rc4.py des.py   # implementasi per algoritma
+    _cbc.py          # streaming CBC + PKCS7, dipakai aes.py dan des.py
     keys.py
     vault.py
   services/
@@ -115,7 +116,8 @@ Modul `app/crypto/` dikerjakan Anggota 2. Backend hanya memakai interface ini. K
 Algorithm = Literal["aes", "rc4", "des"]
 
 # keys.py
-def derive_user_keys(key_salt: bytes) -> dict[Algorithm, bytes]
+def new_key_salt() -> bytes                                                  # 16 byte, saat register
+def derive_user_keys(key_salt: bytes, master_secret: bytes | None = None) -> dict[Algorithm, bytes]   # default MASTER_SECRET dari .env
 def new_file_keys() -> dict[Algorithm, bytes]
 
 # vault.py (memanggil aes.py / rc4.py / des.py sesuai alg)
