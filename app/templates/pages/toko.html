@@ -1,0 +1,16 @@
+{% extends "layouts/store.html" %}
+{% from "components/skeleton.html" import skeleton %}
+{% block title %}Klaim masuk{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Klaim masuk</h1>
+    <p class="desc">Klaim dari pembeli beserta bukti unboxing. Kamu hanya bisa membuka file paket yang diklaim.</p>
+  </div>
+</div>
+<div class="chips" id="filters" role="tablist" aria-label="Filter status" style="margin-bottom:16px">
+  <span class="skeleton" style="width:320px;height:26px;border-radius:999px"></span>
+</div>
+<div id="claims">{{ skeleton("cards", n=3) }}</div>
+{% endblock %}
+{% block scripts %}<script src="/static/js/pages/toko.js" defer></script>{% endblock %}
