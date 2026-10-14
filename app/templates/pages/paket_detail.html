@@ -1,0 +1,54 @@
+{% extends "layouts/buyer.html" %}
+{% from "components/button.html" import button %}
+{% from "components/panel.html" import panel %}
+{% from "components/skeleton.html" import skeleton %}
+{% block title %}Detail paket{% endblock %}
+{% block content %}
+<a class="back-link" href="/brankas"><i data-lucide="arrow-left"></i>Brankas</a>
+<div class="page-head">
+  <div class="grow">
+    <h1 class="page-title" id="pkg-title"><span class="skeleton skeleton-title"></span></h1>
+    <div class="meta-line" id="pkg-meta"><span class="skeleton skeleton-text" style="width:280px"></span></div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="stack-24">
+    {% call panel(flush=True, id="video-panel") %}
+      <div id="player">{{ skeleton("player") }}</div>
+      <div id="video-row">{{ skeleton("rows", n=1) }}</div>
+    {% endcall %}
+
+    {% call panel(title="Dokumen", icon="files", flush=True) %}
+      <div id="docs">{{ skeleton("rows", n=2) }}</div>
+    {% endcall %}
+
+    <section class="panel">
+      <details class="disclosure" id="demo">
+        <summary><i data-lucide="flask-conical"></i><span>Mode demo</span><span class="label" style="margin-left:4px">Pilih algoritma</span><i data-lucide="chevron-down" class="chev"></i></summary>
+        <div class="panel-body stack-12">
+          <div class="row-12">
+            <div class="segmented" role="radiogroup" aria-label="Algoritma dekripsi" id="alg-switch">
+              <button type="button" data-alg="aes" class="is-active" role="radio" aria-checked="true">AES</button>
+              <button type="button" data-alg="rc4" role="radio" aria-checked="false">RC4</button>
+              <button type="button" data-alg="des" role="radio" aria-checked="false">DES</button>
+            </div>
+            <span class="mono muted" id="alg-hint">/files/{id}/download?alg=aes</span>
+          </div>
+          <p class="desc">Pemutar video dan tombol Unduh memakai ciphertext algoritma yang dipilih. Ketiganya menghasilkan file yang sama.</p>
+        </div>
+      </details>
+    </section>
+  </div>
+
+  <div class="stack-24">
+    {% call panel(title="Klaim", icon="message-square", id="claim-panel") %}
+      <div id="claim">{{ skeleton("text", n=4) }}</div>
+    {% endcall %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>window.PACKAGE_ID = {{ package_id }};</script>
+<script src="/static/js/pages/paket.js" defer></script>
+{% endblock %}
