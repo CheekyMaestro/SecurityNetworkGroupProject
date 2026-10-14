@@ -41,9 +41,21 @@ Aturan isi (salah → 400 dengan pesan per field, mis. `{"detail": "NIK wajib 16
 
 `POST /packages` → **201**, bentuk sama dengan satu item `GET /packages` (`video_file_id` `null`, `document_count` 0, `total_size_bytes` 0).
 
-`POST /files` gagal:
-- format atau kategori salah → **400**, mis. `{"detail": "Format file tidak didukung. Video: mp4, mkv, mov"}`
-- terlalu besar → **413**, mis. `{"detail": "Ukuran video maksimal 100 MB"}`
+`POST /files`: **urutan field penting**. `category` (dan `package_id` kalau ada) harus di-`append` ke `FormData` **sebelum** `file`, karena server mengenkripsi file sambil menerimanya dan perlu tahu batas ukuran sejak awal.
+
+```js
+const fd = new FormData();
+fd.append("category", "video");
+fd.append("package_id", "3");     // opsional; jangan untuk id_card
+fd.append("file", input.files[0]); // terakhir
+```
+
+Gagal:
+- format, kategori, atau isi file tidak cocok dengan ekstensinya → **400**, mis. `{"detail": "Format video yang diterima: mkv, mov, mp4"}`
+- terlalu besar → **413**, mis. `{"detail": "Ukuran video maksimal 100 MB"}` (KTP 5 MB, dokumen 20 MB)
+- `category` dikirim setelah `file` → **400** `{"detail": "Field category harus dikirim sebelum file"}`
+- `package_id` bukan milik user → **404**; `package_id` untuk `id_card` → **400**
+- file kosong → **400**
 
 `GET /files/{id}/download?alg=aes` → **200** isi file asli dengan `Content-Type` sesuai file dan `Content-Disposition` berisi nama asli. Bisa dipakai langsung sebagai `src` `<video>`/`<img>`. Untuk video: bisa diputar, tapi belum bisa dimajukan (seek) karena belum mendukung HTTP Range.
 

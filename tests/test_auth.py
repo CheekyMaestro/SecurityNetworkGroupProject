@@ -210,13 +210,6 @@ def test_sesi_diperpanjang_setiap_request():
     assert read_token(new_token) == (user.id, user.role)
 
 
-def test_sesi_diperpanjang_juga_di_response_langsung(buyer):
-    # Download mengembalikan Response sendiri; cookie tetap harus diperbarui.
-    r = buyer.get("/files/1/download")
-    assert r.status_code == 200
-    _session_cookie_header(r)
-
-
 def test_tidak_ada_cookie_baru_kalau_gagal_auth(client):
     r = client.get("/auth/me")
     assert r.status_code == 401

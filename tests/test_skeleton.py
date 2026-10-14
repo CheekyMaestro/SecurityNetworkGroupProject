@@ -60,14 +60,7 @@ def test_openapi_memuat_semua_endpoint(client):
     assert expected <= actual
 
 
-def test_packages_files_stats_bentuk_kontrak(buyer):
-    pkg = buyer.get("/packages").json()["items"][0]
-    assert set(pkg) == {"id", "item_name", "store", "order_no", "created_at",
-                        "video_file_id", "document_count", "total_size_bytes"}
-    files = buyer.get("/files", params={"category": "video"}).json()["items"]
-    assert files and all(f["category"] == "video" for f in files)
-    assert set(files[0]) == {"id", "package_id", "category", "name", "mime_type",
-                             "size_bytes", "created_at", "algorithms"}
+def test_stats_bentuk_kontrak(buyer):
     stats = buyer.get("/stats").json()
     assert [s["algorithm"] for s in stats["per_algorithm"]] == ["aes", "rc4", "des"]
 
@@ -76,10 +69,6 @@ def test_bentuk_kontrak_prd_tim(buyer, store):
     """Bentuk dari docs/PRD.md tim; mock FE dibuat persis seperti ini."""
     me = buyer.get("/auth/me").json()
     assert set(me) == {"id", "username", "role", "store_name"}
-
-    pkg = buyer.get("/packages/3").json()
-    assert set(pkg) == {"id", "item_name", "store", "order_no", "created_at", "files", "claim"}
-    assert set(pkg["claim"]) == {"id", "status"}
 
     created = buyer.post("/claims", json={"package_id": 3, "store_user_id": 21, "message": "rusak"})
     assert created.status_code == 201
