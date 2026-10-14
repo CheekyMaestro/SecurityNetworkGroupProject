@@ -1,6 +1,7 @@
+from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 Algorithm = Literal["aes", "rc4", "des"]
 Category = Literal["id_card", "document", "video"]
@@ -35,6 +36,8 @@ class OkOut(BaseModel):
 # --- Profil ---
 
 class ProfileData(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     full_name: str = Field(min_length=1, max_length=200)
     nik: str = Field(min_length=1, max_length=32)
     birth_date: str = Field(min_length=1, max_length=10)
@@ -46,6 +49,24 @@ class ProfileData(BaseModel):
     bank_account: str = Field(min_length=1, max_length=100)
     religion: str | None = Field(default=None, max_length=64)
     health_notes: str | None = Field(default=None, max_length=1000)
+
+    @field_validator("religion", "health_notes", mode="before")
+    @classmethod
+    def _empty_to_none(cls, v):
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
+
+    @field_validator("birth_date")
+    @classmethod
+    def _valid_date(cls, v: str) -> str:
+        try:
+            parsed = date.fromisoformat(v)
+        except ValueError:
+            raise ValueError("format tanggal YYYY-MM-DD") from None
+        if len(v) != 10 or parsed > date.today():
+            raise ValueError("tanggal tidak valid")
+        return v
 
 
 class ProfileDataOut(BaseModel):

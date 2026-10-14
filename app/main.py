@@ -36,6 +36,18 @@ FIELD_LABELS = {
     "username": "Username 3 sampai 32 karakter, hanya huruf, angka, dan _",
     "password": "Password minimal 8 karakter",
     "file": "File wajib dipilih",
+    "data": "Data profil wajib dikirim dalam field data",
+    "full_name": "Nama lengkap wajib diisi",
+    "nik": "NIK wajib diisi",
+    "birth_date": "Tanggal lahir wajib diisi dengan format YYYY-MM-DD",
+    "gender": "Jenis kelamin wajib diisi",
+    "nationality": "Kewarganegaraan wajib diisi",
+    "marital_status": "Status perkawinan wajib diisi",
+    "address": "Alamat wajib diisi",
+    "phone": "Nomor telepon wajib diisi",
+    "bank_account": "Nomor rekening wajib diisi",
+    "religion": "Agama terlalu panjang",
+    "health_notes": "Riwayat kesehatan terlalu panjang",
 }
 
 

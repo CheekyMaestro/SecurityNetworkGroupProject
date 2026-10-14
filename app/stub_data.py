@@ -1,20 +1,5 @@
 """Contoh response sesuai kontrak, dipakai stub fase 1. Dihapus bertahap saat endpoint asli jadi."""
 
-PROFILE = {
-    "algorithm": "aes",
-    "decrypt_ms": 0.42,
-    "updated_at": "2026-10-14T10:12:00+07:00",
-    "data": {
-        "full_name": "Dzaky A.", "nik": "3578xxxxxxxxxxxx", "birth_date": "2004-05-12",
-        "gender": "Laki-laki", "nationality": "WNI", "marital_status": "Belum kawin",
-        "address": "Jl. Contoh No. 12, Surabaya", "phone": "0812xxxxxxxx",
-        "bank_account": "BCA 1234xxxxxx", "religion": None, "health_notes": None,
-    },
-    "id_card_file_id": 7,
-}
-
-PROFILE_SAVED = {"updated_at": "2026-10-14T10:12:00+07:00", "enc_ms": {"aes": 0.31, "rc4": 0.12, "des": 0.55}}
-
 PACKAGE = {
     "id": 3, "item_name": "Monitor 24 inci", "store": "Toko Elektra",
     "order_no": "INV/2026/10/0412", "created_at": "2026-10-11T16:45:00+07:00",

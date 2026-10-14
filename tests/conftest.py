@@ -53,6 +53,13 @@ def login_client(user: User) -> TestClient:
     return c
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _tables():
+    from app.db import Base, engine
+
+    Base.metadata.create_all(engine)
+
+
 @pytest.fixture
 def client():
     with TestClient(app) as c:

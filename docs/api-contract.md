@@ -29,6 +29,13 @@ Bentuk JSON utama ada di [`docs/PRD.md`](PRD.md) bagian "Contoh JSON response". 
 
 `enc_ms` = waktu enkripsi profil per algoritma (ms), bisa ditampilkan di mode demo.
 
+Aturan isi (salah → 400 dengan pesan per field, mis. `{"detail": "NIK wajib diisi"}`):
+- `birth_date` format `YYYY-MM-DD` (nilai dari `<input type="date">`), tidak boleh di masa depan.
+- Spasi di awal/akhir dibuang. `religion`/`health_notes` berisi `""` disimpan sebagai `null`.
+- Batas panjang: alamat 500, riwayat kesehatan 1000, nama 200 karakter.
+
+`GET /profile` sebelum profil pernah disimpan: `data` semua `null`, `decrypt_ms` dan `updated_at` `null`. `id_card_file_id` tetap terisi kalau foto KTP sudah diunggah lebih dulu.
+
 ## Paket dan file
 
 `POST /packages` → **201**, bentuk sama dengan satu item `GET /packages` (`video_file_id` `null`, `document_count` 0, `total_size_bytes` 0).
