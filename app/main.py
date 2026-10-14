@@ -38,7 +38,7 @@ FIELD_LABELS = {
     "file": "File wajib dipilih",
     "data": "Data profil wajib dikirim dalam field data",
     "full_name": "Nama lengkap wajib diisi",
-    "nik": "NIK wajib diisi",
+    "nik": "NIK wajib 16 digit angka",
     "birth_date": "Tanggal lahir wajib diisi dengan format YYYY-MM-DD",
     "gender": "Jenis kelamin wajib diisi",
     "nationality": "Kewarganegaraan wajib diisi",

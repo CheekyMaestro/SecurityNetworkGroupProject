@@ -39,7 +39,7 @@ class ProfileData(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     full_name: str = Field(min_length=1, max_length=200)
-    nik: str = Field(min_length=1, max_length=32)
+    nik: str = Field(pattern=r"^[0-9]{16}$")
     birth_date: str = Field(min_length=1, max_length=10)
     gender: str = Field(min_length=1, max_length=32)
     nationality: str = Field(min_length=1, max_length=64)
