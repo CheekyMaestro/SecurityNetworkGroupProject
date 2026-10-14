@@ -1,0 +1,11 @@
+{#- Alur fokus tanpa rail (Ajukan klaim). -#}
+{% extends "base.html" %}
+{% from "components/top_bar.html" import top_bar %}
+{% block body %}
+<div class="app">
+  {{ top_bar("buyer") }}
+  <main class="main">
+    <div class="content content-narrow" id="page">{% block content %}{% endblock %}</div>
+  </main>
+</div>
+{% endblock %}

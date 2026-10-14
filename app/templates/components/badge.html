@@ -1,0 +1,5 @@
+{#- Badge status klaim (diajukan/ditinjau/diterima/ditolak) atau tone bebas (brand/ok/warn/bad/neutral). -#}
+{% set STATUS_LABEL = {"diajukan": "Diajukan", "ditinjau": "Ditinjau", "diterima": "Diterima", "ditolak": "Ditolak"} %}
+{% macro badge(status, label=None) -%}
+<span class="badge badge-{{ status }}">{{ label or STATUS_LABEL.get(status, status) }}</span>
+{%- endmacro %}

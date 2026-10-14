@@ -1,0 +1,9 @@
+{"items": [
+  {"id": 7, "package_id": null, "category": "id_card", "name": "ktp-dzaky.png", "mime_type": "image/png", "size_bytes": 184320, "created_at": "2026-10-10T20:01:00+07:00", "algorithms": ["aes","rc4","des"]},
+  {"id": 12, "package_id": 3, "category": "video", "name": "unboxing-monitor.mp4", "mime_type": "video/mp4", "size_bytes": 190601216, "created_at": "2026-10-11T16:45:00+07:00", "algorithms": ["aes","rc4","des"]},
+  {"id": 13, "package_id": 3, "category": "document", "name": "invoice-elektra.pdf", "mime_type": "application/pdf", "size_bytes": 2888, "created_at": "2026-10-11T16:46:00+07:00", "algorithms": ["aes","rc4","des"]},
+  {"id": 14, "package_id": 3, "category": "document", "name": "kronologi.docx", "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "size_bytes": 9858, "created_at": "2026-10-11T16:46:00+07:00", "algorithms": ["aes","rc4","des"]},
+  {"id": 15, "package_id": 4, "category": "video", "name": "unboxing-sepatu.mov", "mime_type": "video/quicktime", "size_bytes": 48234496, "created_at": "2026-10-08T19:20:00+07:00", "algorithms": ["aes","rc4","des"]},
+  {"id": 16, "package_id": 4, "category": "document", "name": "nota-sportiva.pdf", "mime_type": "application/pdf", "size_bytes": 2888, "created_at": "2026-10-08T19:21:00+07:00", "algorithms": ["aes","rc4","des"]},
+  {"id": 17, "package_id": 6, "category": "video", "name": "unboxing-kabel.mp4", "mime_type": "video/mp4", "size_bytes": 12582912, "created_at": "2026-10-05T08:12:00+07:00", "algorithms": ["aes","rc4","des"]}
+]}

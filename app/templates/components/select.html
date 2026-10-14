@@ -1,0 +1,7 @@
+{#- options: daftar (value, label). placeholder menjadi opsi kosong pertama. -#}
+{% macro select(name, options=[], id=None, placeholder=None, selected=None, attrs="") -%}
+<select class="select" name="{{ name }}" id="{{ id or name }}" {{ attrs|safe }}>
+  {%- if placeholder %}<option value="">{{ placeholder }}</option>{% endif %}
+  {%- for value, label in options %}<option value="{{ value }}"{% if value == selected %} selected{% endif %}>{{ label }}</option>{% endfor %}
+</select>
+{%- endmacro %}

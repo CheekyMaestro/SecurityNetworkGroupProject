@@ -1,0 +1,9 @@
+{#- Maskot + kalimat + tombol aksi utama. -#}
+{% macro empty_state(title, desc=None, action_label=None, action_href=None, action_icon=None, id=None) -%}
+<div class="empty-state"{% if id %} id="{{ id }}"{% endif %}>
+  <img src="/static/img/logo.svg" alt="">
+  <h3>{{ title }}</h3>
+  {%- if desc %}<p class="desc">{{ desc }}</p>{% endif %}
+  {%- if action_label %}<a class="btn btn-primary btn-lg" href="{{ action_href }}">{% if action_icon %}<i data-lucide="{{ action_icon }}"></i>{% endif %}{{ action_label }}</a>{% endif %}
+</div>
+{%- endmacro %}

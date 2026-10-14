@@ -1,0 +1,17 @@
+{#- Panel putih berborder. Body lewat {% call %}; footer lewat panel_footer() di dalam body.
+    actions: HTML untuk sisi kanan header. flush=True → body tanpa padding (tabel, daftar file). -#}
+{% macro panel(title=None, icon=None, id=None, cls="", actions=None, flush=False, body=True) -%}
+<section class="panel {{ cls }}"{% if id %} id="{{ id }}"{% endif %}>
+  {%- if title %}
+  <header class="panel-header">
+    <h3>{% if icon %}<i data-lucide="{{ icon }}"></i>{% endif %}{{ title }}</h3>
+    {%- if actions %}<div class="row">{{ actions|safe }}</div>{% endif %}
+  </header>
+  {%- endif %}
+  {%- if body %}<div class="panel-body{% if flush %} panel-body-flush{% endif %}">{{ caller() }}</div>{% else %}{{ caller() }}{% endif %}
+</section>
+{%- endmacro %}
+
+{% macro panel_footer(note=None) -%}
+<footer class="panel-footer">{% if note %}<span class="footer-note">{{ note }}</span>{% endif %}{{ caller() }}</footer>
+{%- endmacro %}

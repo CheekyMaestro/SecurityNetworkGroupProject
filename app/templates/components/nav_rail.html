@@ -1,0 +1,15 @@
+{#- Icon rail kiri untuk pembeli. Tooltip memakai data-tip. -#}
+{% set RAIL = [
+  ("brankas", "/brankas", "vault", "Brankas"),
+  ("unboxing", "/unboxing/baru", "package-plus", "Simpan unboxing"),
+  ("profil", "/profil", "id-card", "Profil & KTP"),
+  ("statistik", "/statistik", "chart-column", "Statistik"),
+] %}
+{% macro nav_rail(active=None) -%}
+<nav class="rail" aria-label="Navigasi utama">
+  {%- for key, href, icon, label in RAIL %}
+  {% if loop.index == 4 %}<span class="rail-sep" aria-hidden="true"></span>{% endif %}
+  <a class="rail-item{% if key == active %} is-active{% endif %}" href="{{ href }}" data-tip="{{ label }}" aria-label="{{ label }}"{% if key == active %} aria-current="page"{% endif %}><i data-lucide="{{ icon }}"></i></a>
+  {%- endfor %}
+</nav>
+{%- endmacro %}

@@ -1,0 +1,8 @@
+{#- Baris file statis (mis. contoh di form). Versi dinamis: App.fileRow(file, actionsHtml). -#}
+{% macro file_row(name, meta, icon="file", tone="", actions=None) -%}
+<div class="file-row">
+  <span class="file-icon {{ tone }}"><i data-lucide="{{ icon }}"></i></span>
+  <div class="file-meta"><div class="name">{{ name }}</div><div class="mono">{{ meta }}</div></div>
+  {%- if actions %}<div class="row">{{ actions|safe }}</div>{% endif %}
+</div>
+{%- endmacro %}
