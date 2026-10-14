@@ -197,7 +197,12 @@
   function page(role, fn, notFoundTarget) {
     document.addEventListener("DOMContentLoaded", async function () {
       var me;
-      try { me = await guard(role); } catch (e) { return; }
+      try { me = await guard(role); }
+      catch (e) {
+        // 401 sudah diarahkan ke /masuk; error lain (server mati, BE belum siap) tetap diberi tahu
+        if (e && e.status && e.status !== 401) toast(e.detail || "Tidak bisa memuat sesi.", "error");
+        return;
+      }
       try { await fn(me); }
       catch (e) {
         if (e && e.status === 404) notFound(notFoundTarget || "#page", me.role);

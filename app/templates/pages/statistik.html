@@ -1,0 +1,46 @@
+{% extends "layouts/buyer.html" %}
+{% from "components/panel.html" import panel %}
+{% from "components/skeleton.html" import skeleton %}
+{% block title %}Statistik enkripsi{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="row"><h1 class="page-title">Statistik enkripsi</h1><span class="badge badge-warn" id="sample-badge" hidden>Data contoh</span></div>
+    <p class="desc">Rata-rata waktu dan ukuran dari semua file yang kamu simpan, per algoritma.</p>
+  </div>
+  <div class="legend" aria-hidden="true">
+    <span><i style="background:var(--brand-600)"></i>AES</span>
+    <span><i style="background:var(--brand-400)"></i>RC4</span>
+    <span><i style="background:var(--brand-200);outline:1px solid var(--brand-400)"></i>DES</span>
+  </div>
+</div>
+
+<div class="notice notice-warn">
+  <i data-lucide="shield-alert"></i>
+  <span>RC4 dan DES dipakai karena syarat tugas; keduanya sudah tidak dianggap aman.</span>
+</div>
+
+<div class="section grid-2" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+  {% call panel(title="Waktu per MB", icon="timer") %}
+    <p class="desc" style="margin-bottom:12px">Milidetik untuk mengenkripsi atau mendekripsi 1 MB. Makin pendek makin cepat.</p>
+    <div class="chart-box"><canvas id="chart-time" role="img" aria-label="Grafik batang waktu enkripsi dan dekripsi per MB"></canvas><div id="sk-time" style="position:absolute;inset:0">{{ skeleton("player") }}</div></div>
+  {% endcall %}
+  {% call panel(title="Ukuran ciphertext", icon="hard-drive") %}
+    <p class="desc" style="margin-bottom:12px">Total ciphertext tersimpan. Selisih kecil berasal dari padding blok (AES 16 B, DES 8 B).</p>
+    <div class="chart-box"><canvas id="chart-size" role="img" aria-label="Grafik batang ukuran ciphertext per algoritma"></canvas><div id="sk-size" style="position:absolute;inset:0">{{ skeleton("player") }}</div></div>
+  {% endcall %}
+</div>
+
+<section class="section">
+  {% call panel(title="Waktu enkripsi per kategori", icon="layers") %}
+    <div class="chart-box" style="height:240px"><canvas id="chart-cat" role="img" aria-label="Grafik batang waktu enkripsi per MB untuk tiap kategori file"></canvas><div id="sk-cat" style="position:absolute;inset:0">{{ skeleton("player") }}</div></div>
+  {% endcall %}
+</section>
+
+<section class="section">
+  <div class="section-head"><h2 class="section-title">Tabel angka</h2></div>
+  {% call panel(flush=True) %}<div id="table">{{ skeleton("table", n=3, cols=4) }}</div>{% endcall %}
+</section>
+{% endblock %}
+{% block scripts %}<script src="/static/js/pages/statistik.js" defer></script>{% endblock %}
