@@ -51,7 +51,8 @@ Aplikasi menolak start kalau `MASTER_SECRET` atau `JWT_SECRET` kosong. Jangan ba
 
 - Dokumentasi API interaktif: http://localhost:8000/docs
 - Contoh JSON untuk endpoint yang belum dicontohkan PRD: [`docs/api-contract.md`](docs/api-contract.md)
-- Test: `pytest -q`
+- Test: `pytest -q`; skenario demo lewat server sungguhan: `python scripts/demo_e2e.py`
+- Hasil pengujian dan keterbatasan: [`docs/hasil-pengujian.md`](docs/hasil-pengujian.md)
 
 ### Akun demo
 
