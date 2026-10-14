@@ -36,6 +36,8 @@ def validate_settings(settings: Settings) -> Settings:
         raise ConfigError("MASTER_SECRET harus base64 yang valid.") from None
     if len(raw) != 32:
         raise ConfigError(f"MASTER_SECRET harus 32 byte setelah decode base64, sekarang {len(raw)} byte.")
+    if len(settings.jwt_secret) < 32:
+        raise ConfigError("JWT_SECRET minimal 32 karakter (lihat cara generate di .env.example).")
     if settings.jwt_secret == settings.master_secret:
         raise ConfigError("JWT_SECRET tidak boleh sama dengan MASTER_SECRET.")
     if settings.session_minutes <= 0:
