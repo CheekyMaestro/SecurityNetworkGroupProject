@@ -120,6 +120,8 @@ class FileList(BaseModel):
 # --- Paket ---
 
 class PackageCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     item_name: str = Field(min_length=1, max_length=200)
     store: str = Field(min_length=1, max_length=200)
     order_no: str = Field(min_length=1, max_length=100)
