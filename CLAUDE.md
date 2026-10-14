@@ -33,6 +33,7 @@ app/
     sessions.py      # buat/baca JWT, set/hapus cookie
   crypto/            # modul enkripsi (bagian Anggota 2, lihat "Modul enkripsi")
     aes.py rc4.py des.py   # implementasi per algoritma
+    _cbc.py          # streaming CBC + PKCS7, dipakai aes.py dan des.py
     keys.py
     vault.py
   services/
@@ -115,7 +116,8 @@ Modul `app/crypto/` dikerjakan Anggota 2. Backend hanya memakai interface ini. K
 Algorithm = Literal["aes", "rc4", "des"]
 
 # keys.py
-def derive_user_keys(key_salt: bytes) -> dict[Algorithm, bytes]
+def new_key_salt() -> bytes                                                  # 16 byte, saat register
+def derive_user_keys(key_salt: bytes, master_secret: bytes | None = None) -> dict[Algorithm, bytes]   # default MASTER_SECRET dari .env
 def new_file_keys() -> dict[Algorithm, bytes]
 
 # vault.py (memanggil aes.py / rc4.py / des.py sesuai alg)
@@ -137,8 +139,12 @@ def unwrap_key(kek: bytes, nonce: bytes, wrapped: bytes, tag: bytes) -> bytes
 | files | id, user_id, package_id (nullable), category (`id_card`/`document`/`video`), name_iv, name_ciphertext, mime_type, size_bytes, created_at |
 | file_ciphertexts | id, file_id, algorithm, iv, storage_path, enc_time_ms |
 | file_keys | id, file_id, user_id, algorithm, wrap_nonce, wrapped_key, wrap_tag (unik per file+user+algorithm) |
-| claims | id, package_id, buyer_id, store_user_id, status (`diajukan`/`ditinjau`/`diterima`/`ditolak`), message_iv, message_ciphertext, created_at, updated_at |
+| claims | id, package_id, buyer_id, store_user_id, status (`diajukan`/`ditinjau`/`diterima`/`ditolak`), message_iv, message_ciphertext, summary_iv, summary_ciphertext, created_at, updated_at |
 | claim_replies | id, claim_id, author_id, body_iv, body_ciphertext, created_at |
+| claim_keys | id, claim_id, user_id, wrap_nonce, wrapped_key, wrap_tag (unik per claim+user) |
+| decrypt_logs | id, file_id, user_id (yang mengunduh), algorithm, dec_time_ms, size_bytes, created_at |
+
+Pesan, balasan, dan `summary` klaim (JSON `{buyer_name, item_name, order_no}`, salinan saat klaim dibuat) dienkripsi AES dengan **kunci klaim** acak 32 byte, yang dibungkus AES-GCM untuk pembeli dan toko di `claim_keys`.
 
 Profil disimpan sebagai JSON 11 field, dienkripsi 3 kali. `religion` dan `health_notes` opsional (boleh `null`), sisanya wajib.
 
@@ -230,10 +236,12 @@ Route halaman (`/masuk`, `/daftar`, `/brankas`, `/unboxing/baru`, `/paket/{id}`,
 
 ## Hal yang PRD belum jelaskan (tanya aku sebelum memutuskan)
 
-1. **Pesan klaim dan balasan.** PRD bilang dienkripsi AES, tapi kalau pakai key pembeli, toko tidak bisa membacanya. Usulan: tiap klaim punya kunci AES acak yang dibungkus untuk pembeli dan toko (tabel `claim_keys`: claim_id, user_id, wrap_nonce, wrapped_key, wrap_tag).
-2. **Nama pembeli untuk toko.** Nama ada di profil terenkripsi key pembeli. Usulan: saat klaim dibuat, simpan salinan nama pembeli terenkripsi dengan kunci klaim. "KTP terverifikasi" = pembeli punya file `id_card`.
-3. **`avg_dec_ms_per_mb`.** Skema hanya punya `enc_time_ms`. Usulan: tabel kecil `decrypt_logs` (file_id, algorithm, dec_time_ms, size_bytes, created_at) diisi setiap unduhan.
+1. **Pesan klaim dan balasan.** DIPUTUSKAN: kunci klaim acak, dibungkus untuk pembeli dan toko di `claim_keys`.
+2. **Nama pembeli untuk toko.** DIPUTUSKAN: salinan nama pembeli (nama lengkap profil, atau username kalau profil kosong), nama barang, dan no. pesanan dienkripsi dengan kunci klaim. "KTP terverifikasi" = pembeli punya file `id_card`. Toko tidak pernah menerima NIK, HP, alamat, rekening, atau foto KTP.
+3. **`avg_dec_ms_per_mb`.** DIPUTUSKAN: `decrypt_logs` diisi setiap unduhan yang selesai (unduhan terputus tidak dicatat). Hanya waktu dekripsi yang diukur. Rata-rata per MB di `/stats` tertimbang (total ms / total MB) atas file milik pembeli, termasuk unduhan oleh toko.
 4. **Seek video.** Download streaming tanpa dukungan HTTP Range membuat video bisa diputar tapi tidak bisa dimajukan. Cukup untuk demo kecuali aku minta lebih.
+
+Ditunda (setelah Assignment 1): fitur chat pembeli dan toko di web. Sementara percakapan memakai balasan klaim.
 
 ## Urutan kerja
 

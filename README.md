@@ -51,4 +51,16 @@ Aplikasi menolak start kalau `MASTER_SECRET` atau `JWT_SECRET` kosong. Jangan ba
 
 - Dokumentasi API interaktif: http://localhost:8000/docs
 - Contoh JSON untuk endpoint yang belum dicontohkan PRD: [`docs/api-contract.md`](docs/api-contract.md)
-- Test: `pytest -q`
+- Test: `pytest -q`; skenario demo lewat server sungguhan: `python scripts/demo_e2e.py`
+- Hasil pengujian dan keterbatasan: [`docs/hasil-pengujian.md`](docs/hasil-pengujian.md)
+
+### Akun demo
+
+```
+python scripts/seed.py                     # password acak per akun dicetak di terminal
+python scripts/seed.py --password rahasia1 # atau satu password untuk semua akun baru
+```
+
+Membuat `elektra` (Toko Elektra), `gadgetin` (Toko Gadgetin), dan pembeli `dzaky`. Aman dijalankan berulang; akun yang sudah ada tidak diubah.
+
+Belum ada migrasi database. Kalau skema berubah setelah `git pull`, hapus `awan.db` dan folder `storage/`, lalu jalankan seed lagi.
