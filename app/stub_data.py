@@ -1,7 +1,5 @@
 """Contoh response sesuai kontrak, dipakai stub fase 1. Dihapus bertahap saat endpoint asli jadi."""
 
-USER_BUYER = {"id": 1, "username": "dzaky", "role": "buyer", "store_name": None}
-
 PROFILE = {
     "algorithm": "aes",
     "decrypt_ms": 0.42,

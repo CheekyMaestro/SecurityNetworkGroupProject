@@ -1,9 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app import stub_data
+from app.deps import require_buyer
 from app.schemas import Algorithm, ProfileOut, ProfileSaved, ProfileUpdate
 
-router = APIRouter(prefix="/profile", tags=["profile"])
+router = APIRouter(prefix="/profile", dependencies=[Depends(require_buyer)], tags=["profile"])
 
 
 @router.get("", response_model=ProfileOut)

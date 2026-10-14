@@ -10,6 +10,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.config import get_settings
 from app.db import Base, engine
 from app import models  # noqa: F401  (daftarkan tabel ke Base.metadata)
+from app.security.sessions import response_sets_session, set_session_cookie
 from app.routes import auth, claims, files, packages, profile, stats, stores
 
 try:
@@ -46,6 +47,16 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="Awan: Brankas Bukti Unboxing", version="0.1.0", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def sliding_session(request: Request, call_next):
+    response = await call_next(request)
+    token = getattr(request.state, "refreshed_session", None)
+    # Jangan timpa cookie yang sengaja dipasang/dihapus endpoint (login, logout).
+    if token and not response_sets_session(response):
+        set_session_cookie(response, token)
+    return response
 
 
 @app.exception_handler(RequestValidationError)
