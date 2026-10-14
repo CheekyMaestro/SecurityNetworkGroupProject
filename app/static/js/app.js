@@ -200,13 +200,14 @@
       try { me = await guard(role); }
       catch (e) {
         // 401 sudah diarahkan ke /masuk; error lain (server mati, BE belum siap) tetap diberi tahu
-        if (e && e.status && e.status !== 401) toast(e.detail || "Tidak bisa memuat sesi.", "error");
+        if (e && e.status === 404) toast("API /auth/me belum tersedia di server. Nyalakan mode mock dengan ?mock=1.", "error");
+        else if (e instanceof window.ApiError && e.status !== 401) toast(e.detail || "Tidak bisa memuat sesi.", "error");
         return;
       }
       try { await fn(me); }
       catch (e) {
         if (e && e.status === 404) notFound(notFoundTarget || "#page", me.role);
-        else if (e && e.status !== 401) toast(e.detail || "Terjadi kesalahan.", "error");
+        else if (e instanceof window.ApiError && e.status !== 401) toast(e.detail || "Terjadi kesalahan.", "error");
         if (!(e instanceof window.ApiError)) console.error(e);
       }
       icons();
