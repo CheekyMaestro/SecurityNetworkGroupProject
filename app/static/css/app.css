@@ -419,3 +419,5 @@ details.disclosure[open] > summary{border-bottom:1px solid var(--border)}
 .quote{border-left:2px solid var(--brand-200);padding:2px 0 2px 12px;color:var(--ink-2);font-weight:400;white-space:pre-wrap}
 .reply-box{display:flex;flex-direction:column;gap:8px}
 .reply-box .textarea{min-height:64px}
+.masked{-webkit-text-security:disc}
+.section-anchor{scroll-margin-top:72px}
