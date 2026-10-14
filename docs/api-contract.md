@@ -81,3 +81,11 @@ File yang ditambahkan ke paket selama klaim masih `diajukan`/`ditinjau` (mis. se
 ```
 
 `PATCH /claims/{id}`: `reply` boleh dikosongkan atau tidak dikirim.
+
+## Statistik
+
+`GET /stats` hanya menghitung file milik pembeli yang login.
+
+- `avg_enc_ms_per_mb` / `avg_dec_ms_per_mb`: total waktu ÷ total MB (tertimbang). Bernilai `null` kalau belum ada data; `avg_dec_ms_per_mb` baru terisi setelah file pernah diunduh sampai selesai dengan algoritma itu.
+- `total_cipher_bytes`: ukuran ciphertext di disk. AES/DES sedikit lebih besar dari aslinya karena padding; RC4 sama persis.
+- `per_category` hanya berisi kategori yang punya file, urutan video → document → id_card.

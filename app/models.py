@@ -82,6 +82,7 @@ class File(Base):
         back_populates="file", cascade="all, delete-orphan"
     )
     keys: Mapped[list["FileKey"]] = relationship(back_populates="file", cascade="all, delete-orphan")
+    decrypt_logs: Mapped[list["DecryptLog"]] = relationship(cascade="all, delete-orphan")
 
 
 class FileCiphertext(Base):
@@ -168,3 +169,18 @@ class ClaimKey(Base):
     wrap_nonce: Mapped[bytes] = mapped_column(LargeBinary(12))
     wrapped_key: Mapped[bytes] = mapped_column(LargeBinary)
     wrap_tag: Mapped[bytes] = mapped_column(LargeBinary(16))
+
+
+class DecryptLog(Base):
+    """Satu baris per unduhan yang selesai; dipakai /stats untuk avg_dec_ms_per_mb."""
+
+    __tablename__ = "decrypt_logs"
+    __table_args__ = (CheckConstraint(ALG_CHECK, name="ck_declog_alg"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    file_id: Mapped[int] = mapped_column(ForeignKey("files.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    algorithm: Mapped[str] = mapped_column(String(3))
+    dec_time_ms: Mapped[float] = mapped_column(Float)
+    size_bytes: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

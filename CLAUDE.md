@@ -142,6 +142,7 @@ def unwrap_key(kek: bytes, nonce: bytes, wrapped: bytes, tag: bytes) -> bytes
 | claims | id, package_id, buyer_id, store_user_id, status (`diajukan`/`ditinjau`/`diterima`/`ditolak`), message_iv, message_ciphertext, summary_iv, summary_ciphertext, created_at, updated_at |
 | claim_replies | id, claim_id, author_id, body_iv, body_ciphertext, created_at |
 | claim_keys | id, claim_id, user_id, wrap_nonce, wrapped_key, wrap_tag (unik per claim+user) |
+| decrypt_logs | id, file_id, user_id (yang mengunduh), algorithm, dec_time_ms, size_bytes, created_at |
 
 Pesan, balasan, dan `summary` klaim (JSON `{buyer_name, item_name, order_no}`, salinan saat klaim dibuat) dienkripsi AES dengan **kunci klaim** acak 32 byte, yang dibungkus AES-GCM untuk pembeli dan toko di `claim_keys`.
 
@@ -237,7 +238,7 @@ Route halaman (`/masuk`, `/daftar`, `/brankas`, `/unboxing/baru`, `/paket/{id}`,
 
 1. **Pesan klaim dan balasan.** DIPUTUSKAN: kunci klaim acak, dibungkus untuk pembeli dan toko di `claim_keys`.
 2. **Nama pembeli untuk toko.** DIPUTUSKAN: salinan nama pembeli (nama lengkap profil, atau username kalau profil kosong), nama barang, dan no. pesanan dienkripsi dengan kunci klaim. "KTP terverifikasi" = pembeli punya file `id_card`. Toko tidak pernah menerima NIK, HP, alamat, rekening, atau foto KTP.
-3. **`avg_dec_ms_per_mb`.** Skema hanya punya `enc_time_ms`. Usulan: tabel kecil `decrypt_logs` (file_id, algorithm, dec_time_ms, size_bytes, created_at) diisi setiap unduhan.
+3. **`avg_dec_ms_per_mb`.** DIPUTUSKAN: `decrypt_logs` diisi setiap unduhan yang selesai (unduhan terputus tidak dicatat). Hanya waktu dekripsi yang diukur. Rata-rata per MB di `/stats` tertimbang (total ms / total MB) atas file milik pembeli, termasuk unduhan oleh toko.
 4. **Seek video.** Download streaming tanpa dukungan HTTP Range membuat video bisa diputar tapi tidak bisa dimajukan. Cukup untuk demo kecuali aku minta lebih.
 
 Ditunda (setelah Assignment 1): fitur chat pembeli dan toko di web. Sementara percakapan memakai balasan klaim.

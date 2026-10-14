@@ -19,7 +19,8 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.crypto.keys import ALGORITHMS, Algorithm, derive_user_keys, new_file_keys
 from app.crypto.vault import StreamDecryptor, StreamEncryptor, decrypt_bytes, encrypt_bytes, unwrap_key, wrap_key
-from app.models import File, FileCiphertext, FileKey, Package, User
+from app.db import SessionLocal
+from app.models import DecryptLog, File, FileCiphertext, FileKey, Package, User
 from app.timeutil import to_wib_iso
 
 log = logging.getLogger("awan.files")
@@ -402,19 +403,39 @@ def open_download(db: Session, user: User, file_id: int, alg: Algorithm) -> Down
     owner = user if f.user_id == user.id else db.get(User, f.user_id)
     name = file_name(f, derive_user_keys(owner.key_salt)["aes"])
     log.info("download file_id=%s user_id=%s alg=%s", file_id, user.id, alg)
-    return Download(name, f.mime_type, f.size_bytes, _decrypt_stream(path, alg, file_key, ct.iv))
+    chunks = _decrypt_stream(path, alg, file_key, ct.iv, f.id, user.id, f.size_bytes)
+    return Download(name, f.mime_type, f.size_bytes, chunks)
 
 
-def _decrypt_stream(path: Path, alg: Algorithm, key: bytes, iv: bytes) -> Iterator[bytes]:
+def _decrypt_stream(
+    path: Path, alg: Algorithm, key: bytes, iv: bytes, file_id: int, user_id: int, size: int,
+) -> Iterator[bytes]:
+    """Hanya waktu dekripsi yang diukur. Unduhan yang terputus di tengah tidak dicatat."""
     dec = StreamDecryptor(alg, key, iv)
+    seconds = 0.0
     with open(path, "rb") as fh:
         while chunk := fh.read(CHUNK):
+            start = time.perf_counter()
             out = dec.update(chunk)
+            seconds += time.perf_counter() - start
             if out:
                 yield out
+    start = time.perf_counter()
     tail = dec.finalize()
+    seconds += time.perf_counter() - start
     if tail:
         yield tail
+    _log_decrypt(file_id, user_id, alg, round(seconds * 1000, 3), size)
+
+
+def _log_decrypt(file_id: int, user_id: int, alg: Algorithm, ms: float, size: int) -> None:
+    try:
+        with SessionLocal() as db:
+            db.add(DecryptLog(file_id=file_id, user_id=user_id, algorithm=alg, dec_time_ms=ms, size_bytes=size))
+            db.commit()
+    except Exception:
+        # Statistik tidak boleh menggagalkan unduhan yang sudah terkirim.
+        log.exception("gagal mencatat decrypt_logs file_id=%s", file_id)
 
 
 # --- Hapus ---
