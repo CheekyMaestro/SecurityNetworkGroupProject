@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "components/empty_state.html" import empty_state %}
+{% block title %}Data tidak ditemukan{% endblock %}
+{% block body %}
+<div class="app">
+  <header class="topbar"><a class="topbar-logo" href="/"><img src="/static/img/logo.svg" alt=""></a><div class="crumbs"><span class="sep">/</span><span>Awan</span></div></header>
+  <main class="notfound">
+    <div class="panel" style="width:min(480px,100%)">
+      {{ empty_state("Data tidak ditemukan", "Halaman atau data yang kamu cari tidak ada, atau bukan milik akun ini.", "Kembali ke beranda", "/masuk", "arrow-left", id="nf") }}
+    </div>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  // Arahkan tombol ke beranda sesuai peran kalau sesi masih ada
+  document.addEventListener("DOMContentLoaded", function () {
+    api.get("/auth/me", { noRedirect: true }).then(function (me) {
+      document.querySelector("#nf a").href = App.HOME[me.role] || "/masuk";
+    }).catch(function () {});
+  });
+</script>
+{% endblock %}

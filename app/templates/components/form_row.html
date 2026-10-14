@@ -1,0 +1,11 @@
+{#- Baris panel form: label kiri (±45%), kontrol kanan. optional=True → "Opsional, boleh dikosongkan". -#}
+{% macro form_row(label, desc=None, for_id=None, optional=False, id=None) -%}
+<div class="form-row"{% if id %} id="{{ id }}"{% endif %}>
+  <div class="form-row-label">
+    {% if for_id %}<label for="{{ for_id }}">{{ label }}</label>{% else %}<span>{{ label }}</span>{% endif %}
+    {%- if optional %}<span class="opt">Opsional, boleh dikosongkan</span>{% endif %}
+    {%- if desc %}<p class="desc">{{ desc }}</p>{% endif %}
+  </div>
+  <div class="form-row-control">{{ caller() }}</div>
+</div>
+{%- endmacro %}
