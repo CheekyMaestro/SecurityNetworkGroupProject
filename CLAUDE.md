@@ -139,8 +139,11 @@ def unwrap_key(kek: bytes, nonce: bytes, wrapped: bytes, tag: bytes) -> bytes
 | files | id, user_id, package_id (nullable), category (`id_card`/`document`/`video`), name_iv, name_ciphertext, mime_type, size_bytes, created_at |
 | file_ciphertexts | id, file_id, algorithm, iv, storage_path, enc_time_ms |
 | file_keys | id, file_id, user_id, algorithm, wrap_nonce, wrapped_key, wrap_tag (unik per file+user+algorithm) |
-| claims | id, package_id, buyer_id, store_user_id, status (`diajukan`/`ditinjau`/`diterima`/`ditolak`), message_iv, message_ciphertext, created_at, updated_at |
+| claims | id, package_id, buyer_id, store_user_id, status (`diajukan`/`ditinjau`/`diterima`/`ditolak`), message_iv, message_ciphertext, summary_iv, summary_ciphertext, created_at, updated_at |
 | claim_replies | id, claim_id, author_id, body_iv, body_ciphertext, created_at |
+| claim_keys | id, claim_id, user_id, wrap_nonce, wrapped_key, wrap_tag (unik per claim+user) |
+
+Pesan, balasan, dan `summary` klaim (JSON `{buyer_name, item_name, order_no}`, salinan saat klaim dibuat) dienkripsi AES dengan **kunci klaim** acak 32 byte, yang dibungkus AES-GCM untuk pembeli dan toko di `claim_keys`.
 
 Profil disimpan sebagai JSON 11 field, dienkripsi 3 kali. `religion` dan `health_notes` opsional (boleh `null`), sisanya wajib.
 
@@ -232,10 +235,12 @@ Route halaman (`/masuk`, `/daftar`, `/brankas`, `/unboxing/baru`, `/paket/{id}`,
 
 ## Hal yang PRD belum jelaskan (tanya aku sebelum memutuskan)
 
-1. **Pesan klaim dan balasan.** PRD bilang dienkripsi AES, tapi kalau pakai key pembeli, toko tidak bisa membacanya. Usulan: tiap klaim punya kunci AES acak yang dibungkus untuk pembeli dan toko (tabel `claim_keys`: claim_id, user_id, wrap_nonce, wrapped_key, wrap_tag).
-2. **Nama pembeli untuk toko.** Nama ada di profil terenkripsi key pembeli. Usulan: saat klaim dibuat, simpan salinan nama pembeli terenkripsi dengan kunci klaim. "KTP terverifikasi" = pembeli punya file `id_card`.
+1. **Pesan klaim dan balasan.** DIPUTUSKAN: kunci klaim acak, dibungkus untuk pembeli dan toko di `claim_keys`.
+2. **Nama pembeli untuk toko.** DIPUTUSKAN: salinan nama pembeli (nama lengkap profil, atau username kalau profil kosong), nama barang, dan no. pesanan dienkripsi dengan kunci klaim. "KTP terverifikasi" = pembeli punya file `id_card`. Toko tidak pernah menerima NIK, HP, alamat, rekening, atau foto KTP.
 3. **`avg_dec_ms_per_mb`.** Skema hanya punya `enc_time_ms`. Usulan: tabel kecil `decrypt_logs` (file_id, algorithm, dec_time_ms, size_bytes, created_at) diisi setiap unduhan.
 4. **Seek video.** Download streaming tanpa dukungan HTTP Range membuat video bisa diputar tapi tidak bisa dimajukan. Cukup untuk demo kecuali aku minta lebih.
+
+Ditunda (setelah Assignment 1): fitur chat pembeli dan toko di web. Sementara percakapan memakai balasan klaim.
 
 ## Urutan kerja
 

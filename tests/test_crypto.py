@@ -70,6 +70,8 @@ def test_streaming_chunk_satu_byte(alg, payloads):
 @pytest.mark.parametrize("alg", ALGORITHMS)
 @pytest.mark.parametrize("size", [n for n in SIZES if n])
 def test_ciphertext_beda_dari_plaintext(alg, size, payloads):
+    if alg == "rc4" and size == 1:
+        pytest.skip("stream cipher: 1 byte ciphertext sama dengan plaintext dengan peluang 1/256")
     key = keys.new_file_keys()[alg]
     data = payloads[size]
     _, ct = encrypt_bytes(alg, key, data)

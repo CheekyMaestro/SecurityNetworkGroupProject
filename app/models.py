@@ -134,12 +134,15 @@ class Claim(Base):
     status: Mapped[str] = mapped_column(String(10), default="diajukan")
     message_iv: Mapped[bytes] = mapped_column(LargeBinary)
     message_ciphertext: Mapped[bytes] = mapped_column(LargeBinary)
+    summary_iv: Mapped[bytes] = mapped_column(LargeBinary)
+    summary_ciphertext: Mapped[bytes] = mapped_column(LargeBinary)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
     replies: Mapped[list["ClaimReply"]] = relationship(
         back_populates="claim", cascade="all, delete-orphan", order_by="ClaimReply.id"
     )
+    keys: Mapped[list["ClaimKey"]] = relationship(cascade="all, delete-orphan")
 
 
 class ClaimReply(Base):
@@ -153,3 +156,15 @@ class ClaimReply(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     claim: Mapped[Claim] = relationship(back_populates="replies")
+
+
+class ClaimKey(Base):
+    __tablename__ = "claim_keys"
+    __table_args__ = (UniqueConstraint("claim_id", "user_id", name="uq_claimkey_claim_user"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    claim_id: Mapped[int] = mapped_column(ForeignKey("claims.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    wrap_nonce: Mapped[bytes] = mapped_column(LargeBinary(12))
+    wrapped_key: Mapped[bytes] = mapped_column(LargeBinary)
+    wrap_tag: Mapped[bytes] = mapped_column(LargeBinary(16))

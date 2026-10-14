@@ -63,6 +63,17 @@ Gagal:
 
 ## Klaim
 
+Yang dilihat toko pada klaim ke tokonya: video dan dokumen paket itu, nama barang, no. pesanan, nama pembeli, status "KTP terverifikasi" (ya/tidak), pesan, dan balasan. Toko **tidak** menerima NIK, HP, alamat, rekening, atau foto KTP.
+
+`POST /claims` gagal:
+- paket bukan milik pembeli, atau `store_user_id` bukan toko → **404**
+- paket masih punya klaim berstatus `diajukan`/`ditinjau` → **400** `{"detail": "Paket ini masih punya klaim yang berjalan"}`
+- paket belum punya video/dokumen → **400**
+
+File yang ditambahkan ke paket selama klaim masih `diajukan`/`ditinjau` (mis. setelah toko memilih "Minta bukti tambahan") otomatis ikut terbuka untuk toko itu.
+
+`video_file_id` di `GET /claims` dan `files` di `GET /claims/{id}` hanya berisi file yang boleh dibuka oleh user yang sedang login.
+
 `POST /claims/{id}/replies` body `{"body": "..."}` → **201**, bentuk satu item `replies` di `GET /claims/{id}`:
 
 ```json
