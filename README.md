@@ -39,3 +39,16 @@ uvicorn app.main:app --reload
 ```
 
 Buka http://localhost:8000/masuk. Tambahkan `?mock=1` untuk memakai data contoh tanpa backend.
+
+### Backend: isi `.env`
+
+```
+python -c "import os,base64;print(base64.b64encode(os.urandom(32)).decode())"   # -> MASTER_SECRET
+python -c "import secrets;print(secrets.token_urlsafe(48))"                     # -> JWT_SECRET
+```
+
+Aplikasi menolak start kalau `MASTER_SECRET` atau `JWT_SECRET` kosong. Jangan bagikan `.env`: siapa pun yang memegang `MASTER_SECRET` bisa menurunkan semua kunci user.
+
+- Dokumentasi API interaktif: http://localhost:8000/docs
+- Contoh JSON untuk endpoint yang belum dicontohkan PRD: [`docs/api-contract.md`](docs/api-contract.md)
+- Test: `pytest -q`
