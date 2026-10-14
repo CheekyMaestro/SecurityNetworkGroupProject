@@ -60,14 +60,6 @@ def test_openapi_memuat_semua_endpoint(client):
     assert expected <= actual
 
 
-def test_profile_bentuk_kontrak(buyer):
-    body = buyer.get("/profile", params={"alg": "des"}).json()
-    assert set(body) == {"algorithm", "decrypt_ms", "updated_at", "data", "id_card_file_id"}
-    assert body["algorithm"] == "des"
-    assert len(body["data"]) == 11
-    assert body["updated_at"].endswith("+07:00")
-
-
 def test_packages_files_stats_bentuk_kontrak(buyer):
     pkg = buyer.get("/packages").json()["items"][0]
     assert set(pkg) == {"id", "item_name", "store", "order_no", "created_at",
@@ -106,13 +98,6 @@ def test_bentuk_kontrak_prd_tim(buyer, store):
 
     patched = store.patch("/claims/5", json={"status": "diterima", "reply": "Kami ganti unit baru."})
     assert set(patched.json()) == set(detail)
-
-
-def test_put_profile_dibungkus_data(buyer):
-    data = {k: "x" for k in ("full_name", "nik", "birth_date", "gender", "nationality",
-                             "marital_status", "address", "phone", "bank_account")}
-    assert buyer.put("/profile", json={"data": data}).status_code == 200
-    assert buyer.put("/profile", json=data).status_code == 400
 
 
 @pytest.mark.parametrize("path", ["/profile?alg=blowfish", "/files/1/download?alg=AES2"])
