@@ -112,8 +112,11 @@ def test_profil_user_lain_tidak_terlihat(buyer):
 
 
 def test_spasi_dibuang_dan_opsional_kosong_jadi_null(buyer):
-    buyer.put("/profile", json={"data": sample(full_name="  Dzaky A.  ", religion="   ", health_notes="")})
+    r = buyer.put("/profile", json={"data": sample(full_name="  Dzaky A.  ", nik=f" {NIK_PENANDA} ",
+                                                  religion="   ", health_notes="")})
+    assert r.status_code == 200
     data = buyer.get("/profile").json()["data"]
+    assert data["nik"] == NIK_PENANDA
     assert data["full_name"] == "Dzaky A."
     assert data["religion"] is None
     assert data["health_notes"] is None
@@ -129,6 +132,10 @@ def test_unicode_tersimpan_utuh(buyer):
 @pytest.mark.parametrize("override, field", [
     ({"full_name": ""}, "Nama lengkap"),
     ({"nik": "   "}, "NIK"),
+    ({"nik": "357899998888777"}, "NIK wajib 16 digit"),
+    ({"nik": "35789999888877771"}, "NIK wajib 16 digit"),
+    ({"nik": "3578xxxxxxxxxxxx"}, "NIK wajib 16 digit"),
+    ({"nik": "3578-9999-8888-77"}, "NIK wajib 16 digit"),
     ({"bank_account": None}, "rekening"),
     ({"birth_date": "12-05-2004"}, "Tanggal lahir"),
     ({"birth_date": "2004-02-30"}, "Tanggal lahir"),

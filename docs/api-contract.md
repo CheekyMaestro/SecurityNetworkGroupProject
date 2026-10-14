@@ -29,7 +29,8 @@ Bentuk JSON utama ada di [`docs/PRD.md`](PRD.md) bagian "Contoh JSON response". 
 
 `enc_ms` = waktu enkripsi profil per algoritma (ms), bisa ditampilkan di mode demo.
 
-Aturan isi (salah → 400 dengan pesan per field, mis. `{"detail": "NIK wajib diisi"}`):
+Aturan isi (salah → 400 dengan pesan per field, mis. `{"detail": "NIK wajib 16 digit angka"}`):
+- `nik` tepat 16 digit angka (tanpa spasi/tanda hubung di tengah).
 - `birth_date` format `YYYY-MM-DD` (nilai dari `<input type="date">`), tidak boleh di masa depan.
 - Spasi di awal/akhir dibuang. `religion`/`health_notes` berisi `""` disimpan sebagai `null`.
 - Batas panjang: alamat 500, riwayat kesehatan 1000, nama 200 karakter.
