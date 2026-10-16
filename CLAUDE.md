@@ -72,10 +72,10 @@ Aplikasi harus gagal start dengan pesan jelas kalau `MASTER_SECRET` atau `JWT_SE
 
 ### Algoritma
 
-| Algoritma  | Mode   | Key     | IV / nonce         | Padding   |
-| ---------- | ------ | ------- | ------------------ | --------- |
-| AES        | CBC    | 32 byte | IV acak 16 byte    | PKCS7     |
-| DES        | CBC    | 8 byte  | IV acak 8 byte     | PKCS7     |
+| Algoritma | Mode | Key | IV / nonce | Padding |
+| --- | --- | --- | --- | --- |
+| AES | CBC | 32 byte | IV acak 16 byte | PKCS7 |
+| DES | CBC | 8 byte | IV acak 8 byte | PKCS7 |
 | RC4 (ARC4) | stream | 16 byte | nonce acak 16 byte | tidak ada |
 
 Setiap data dienkripsi **terpisah** dengan ketiga algoritma: satu data menghasilkan tiga ciphertext. Bukan enkripsi berlapis.
@@ -131,18 +131,18 @@ def unwrap_key(kek: bytes, nonce: bytes, wrapped: bytes, tag: bytes) -> bytes
 
 ## Skema database
 
-| Tabel               | Kolom                                                                                                                                                                                |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| users               | id, username (unik), password_hash, key_salt, role (`buyer`/`store`), store_name (nullable), created_at                                                                              |
-| profile_ciphertexts | id, user_id, algorithm, iv, ciphertext, enc_time_ms, updated_at (3 baris per user, unik per user+algorithm)                                                                          |
-| packages            | id, user_id, meta_iv, meta_ciphertext, created_at (meta = JSON `{item_name, store, order_no}` dienkripsi AES)                                                                        |
-| files               | id, user_id, package_id (nullable), category (`id_card`/`document`/`video`), name_iv, name_ciphertext, mime_type, size_bytes, created_at                                             |
-| file_ciphertexts    | id, file_id, algorithm, iv, storage_path, enc_time_ms                                                                                                                                |
-| file_keys           | id, file_id, user_id, algorithm, wrap_nonce, wrapped_key, wrap_tag (unik per file+user+algorithm)                                                                                    |
-| claims              | id, package_id, buyer_id, store_user_id, status (`diajukan`/`ditinjau`/`diterima`/`ditolak`), message_iv, message_ciphertext, summary_iv, summary_ciphertext, created_at, updated_at |
-| claim_replies       | id, claim_id, author_id, body_iv, body_ciphertext, created_at                                                                                                                        |
-| claim_keys          | id, claim_id, user_id, wrap_nonce, wrapped_key, wrap_tag (unik per claim+user)                                                                                                       |
-| decrypt_logs        | id, file_id, user_id (yang mengunduh), algorithm, dec_time_ms, size_bytes, created_at                                                                                                |
+| Tabel | Kolom |
+| --- | --- |
+| users | id, username (unik), password_hash, key_salt, role (`buyer`/`store`), store_name (nullable), created_at |
+| profile_ciphertexts | id, user_id, algorithm, iv, ciphertext, enc_time_ms, updated_at (3 baris per user, unik per user+algorithm) |
+| packages | id, user_id, meta_iv, meta_ciphertext, created_at (meta = JSON `{item_name, store, order_no}` dienkripsi AES) |
+| files | id, user_id, package_id (nullable), category (`id_card`/`document`/`video`), name_iv, name_ciphertext, mime_type, size_bytes, created_at |
+| file_ciphertexts | id, file_id, algorithm, iv, storage_path, enc_time_ms |
+| file_keys | id, file_id, user_id, algorithm, wrap_nonce, wrapped_key, wrap_tag (unik per file+user+algorithm) |
+| claims | id, package_id, buyer_id, store_user_id, status (`diajukan`/`ditinjau`/`diterima`/`ditolak`), message_iv, message_ciphertext, summary_iv, summary_ciphertext, created_at, updated_at |
+| claim_replies | id, claim_id, author_id, body_iv, body_ciphertext, created_at |
+| claim_keys | id, claim_id, user_id, wrap_nonce, wrapped_key, wrap_tag (unik per claim+user) |
+| decrypt_logs | id, file_id, user_id (yang mengunduh), algorithm, dec_time_ms, size_bytes, created_at |
 
 Pesan, balasan, dan `summary` klaim (JSON `{buyer_name, item_name, order_no}`, salinan saat klaim dibuat) dienkripsi AES dengan **kunci klaim** acak 32 byte, yang dibungkus AES-GCM untuk pembeli dan toko di `claim_keys`.
 
@@ -163,123 +163,69 @@ Hapus file = hapus baris `files`, `file_ciphertexts`, `file_keys`, dan tiga file
 
 Error selalu `{"detail": "pesan untuk user"}` dengan status 400, 401, 403, 404, atau 413. Waktu memakai ISO 8601 dengan offset `+07:00`. Parameter `alg` default `aes`; nilai selain `aes`/`rc4`/`des`: 400.
 
-| Method | Path                         | Siapa                                    | Fungsi                                                                                   |
-| ------ | ---------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------- |
-| POST   | /auth/register               | publik                                   | Buat akun pembeli                                                                        |
-| POST   | /auth/login                  | publik                                   | Verifikasi, set cookie                                                                   |
-| POST   | /auth/logout                 | login                                    | Hapus cookie                                                                             |
-| GET    | /auth/me                     | login                                    | User login: `{id, username, role, store_name}` (juga bentuk response login dan register) |
-| GET    | /profile?alg=aes             | pembeli                                  | Profil terdekripsi                                                                       |
-| PUT    | /profile                     | pembeli                                  | Body `{"data": {...11 field}}`, simpan profil, enkripsi 3 kali                           |
-| POST   | /packages                    | pembeli                                  | Buat paket                                                                               |
-| GET    | /packages                    | pembeli                                  | Daftar paket + jumlah file                                                               |
-| GET    | /packages/{id}               | pembeli                                  | Detail paket + daftar file                                                               |
-| POST   | /files                       | pembeli                                  | Upload multipart: `file`, `category`, `package_id` (opsional)                            |
-| GET    | /files?category=video        | pembeli                                  | Daftar file milik user                                                                   |
-| GET    | /files/{id}/download?alg=des | pemilik atau toko yang punya `file_keys` | Unduh file terdekripsi (streaming, `Content-Disposition` dengan nama asli)               |
-| DELETE | /files/{id}                  | pemilik                                  | Hapus file + 3 ciphertext                                                                |
-| GET    | /stats                       | pembeli                                  | Waktu dan ukuran per algoritma                                                           |
-| GET    | /stores                      | pembeli                                  | Daftar toko                                                                              |
-| POST   | /claims                      | pembeli                                  | Ajukan klaim: `package_id`, `store_user_id`, `message`                                   |
-| GET    | /claims                      | keduanya                                 | Pembeli: klaim miliknya. Toko: klaim ke tokonya                                          |
-| GET    | /claims/{id}                 | keduanya                                 | Detail klaim, file, balasan                                                              |
-| PATCH  | /claims/{id}                 | toko                                     | Ubah status + balasan                                                                    |
-| POST   | /claims/{id}/replies         | keduanya                                 | Tambah balasan                                                                           |
+| Method | Path | Siapa | Fungsi |
+| --- | --- | --- | --- |
+| POST | /auth/register | publik | Buat akun pembeli |
+| POST | /auth/login | publik | Verifikasi, set cookie |
+| POST | /auth/logout | login | Hapus cookie |
+| GET | /auth/me | login | User login: `{id, username, role, store_name}` (juga bentuk response login dan register) |
+| GET | /profile?alg=aes | pembeli | Profil terdekripsi |
+| PUT | /profile | pembeli | Body `{"data": {...11 field}}`, simpan profil, enkripsi 3 kali |
+| POST | /packages | pembeli | Buat paket |
+| GET | /packages | pembeli | Daftar paket + jumlah file |
+| GET | /packages/{id} | pembeli | Detail paket + daftar file |
+| POST | /files | pembeli | Upload multipart: `file`, `category`, `package_id` (opsional) |
+| GET | /files?category=video | pembeli | Daftar file milik user |
+| GET | /files/{id}/download?alg=des | pemilik atau toko yang punya `file_keys` | Unduh file terdekripsi (streaming, `Content-Disposition` dengan nama asli) |
+| DELETE | /files/{id} | pemilik | Hapus file + 3 ciphertext |
+| GET | /stats | pembeli | Waktu dan ukuran per algoritma |
+| GET | /stores | pembeli | Daftar toko |
+| POST | /claims | pembeli | Ajukan klaim: `package_id`, `store_user_id`, `message` |
+| GET | /claims | keduanya | Pembeli: klaim miliknya. Toko: klaim ke tokonya |
+| GET | /claims/{id} | keduanya | Detail klaim, file, balasan |
+| PATCH | /claims/{id} | toko | Ubah status + balasan |
+| POST | /claims/{id}/replies | keduanya | Tambah balasan |
 
 Contoh bentuk yang sudah disepakati dengan frontend (angka hanya ilustrasi):
 
 `GET /profile?alg=aes`
-
 ```json
 {
   "algorithm": "aes",
   "decrypt_ms": 0.42,
   "updated_at": "2026-10-14T10:12:00+07:00",
   "data": {
-    "full_name": "Dzaky A.",
-    "nik": "3578xxxxxxxxxxxx",
-    "birth_date": "2004-05-12",
-    "gender": "Laki-laki",
-    "nationality": "WNI",
-    "marital_status": "Belum kawin",
-    "address": "Jl. Contoh No. 12, Surabaya",
-    "phone": "0812xxxxxxxx",
-    "bank_account": "BCA 1234xxxxxx",
-    "religion": null,
-    "health_notes": null
+    "full_name": "Dzaky A.", "nik": "3578xxxxxxxxxxxx", "birth_date": "2004-05-12",
+    "gender": "Laki-laki", "nationality": "WNI", "marital_status": "Belum kawin",
+    "address": "Jl. Contoh No. 12, Surabaya", "phone": "0812xxxxxxxx",
+    "bank_account": "BCA 1234xxxxxx", "religion": null, "health_notes": null
   },
   "id_card_file_id": 7
 }
 ```
-
 Profil belum pernah diisi: `data` berisi semua field `null`, `updated_at` dan `id_card_file_id` `null`.
 
 `GET /packages`
-
 ```json
-{
-  "items": [
-    {
-      "id": 3,
-      "item_name": "Monitor 24 inci",
-      "store": "Toko Elektra",
-      "order_no": "INV/2026/10/0412",
-      "created_at": "2026-10-11T16:45:00+07:00",
-      "video_file_id": 12,
-      "document_count": 2,
-      "total_size_bytes": 190840112
-    }
-  ]
-}
+{"items": [{"id": 3, "item_name": "Monitor 24 inci", "store": "Toko Elektra",
+  "order_no": "INV/2026/10/0412", "created_at": "2026-10-11T16:45:00+07:00",
+  "video_file_id": 12, "document_count": 2, "total_size_bytes": 190840112}]}
 ```
 
 `GET /files?category=video`
-
 ```json
-{
-  "items": [
-    {
-      "id": 12,
-      "package_id": 3,
-      "category": "video",
-      "name": "unboxing-monitor.mp4",
-      "mime_type": "video/mp4",
-      "size_bytes": 190601216,
-      "created_at": "2026-10-11T16:45:00+07:00",
-      "algorithms": ["aes", "rc4", "des"]
-    }
-  ]
-}
+{"items": [{"id": 12, "package_id": 3, "category": "video", "name": "unboxing-monitor.mp4",
+  "mime_type": "video/mp4", "size_bytes": 190601216, "created_at": "2026-10-11T16:45:00+07:00",
+  "algorithms": ["aes", "rc4", "des"]}]}
 ```
 
 `GET /stats`
-
 ```json
-{
-  "per_algorithm": [
-    {
-      "algorithm": "aes",
-      "avg_enc_ms_per_mb": 4.1,
-      "avg_dec_ms_per_mb": 3.9,
-      "total_cipher_bytes": 191004672
-    },
-    {
-      "algorithm": "rc4",
-      "avg_enc_ms_per_mb": 2.7,
-      "avg_dec_ms_per_mb": 2.6,
-      "total_cipher_bytes": 190601216
-    },
-    {
-      "algorithm": "des",
-      "avg_enc_ms_per_mb": 21.8,
-      "avg_dec_ms_per_mb": 21.2,
-      "total_cipher_bytes": 191004680
-    }
-  ],
-  "per_category": [
-    { "category": "video", "algorithm": "aes", "avg_enc_ms_per_mb": 4.0 }
-  ]
-}
+{"per_algorithm": [
+   {"algorithm": "aes", "avg_enc_ms_per_mb": 4.1, "avg_dec_ms_per_mb": 3.9, "total_cipher_bytes": 191004672},
+   {"algorithm": "rc4", "avg_enc_ms_per_mb": 2.7, "avg_dec_ms_per_mb": 2.6, "total_cipher_bytes": 190601216},
+   {"algorithm": "des", "avg_enc_ms_per_mb": 21.8, "avg_dec_ms_per_mb": 21.2, "total_cipher_bytes": 191004680}],
+ "per_category": [{"category": "video", "algorithm": "aes", "avg_enc_ms_per_mb": 4.0}]}
 ```
 
 Contoh `/auth/me`, `/packages/{id}`, `/stores`, `POST /claims`, `/claims`, `/claims/{id}` ada di `docs/PRD.md` (bagian "Contoh JSON response") dan di CLAUDE.md branch `fe`; ikuti persis. Yang belum dicontohkan di PRD ditulis di `docs/api-contract.md`.
