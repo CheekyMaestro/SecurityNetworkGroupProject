@@ -1,221 +1,343 @@
-# Awan — Frontend
+# Awan: Brankas Bukti Unboxing (Backend)
 
-Tugas 1 Keamanan Informasi (ITS). Kamu mengerjakan **FRONTEND saja**. Backend (auth, database, enkripsi AES/RC4/DES, semua endpoint API) dikerjakan Yae secara paralel di repo yang sama.
-Deadline: **hari ini, siang**. Utamakan semua halaman lengkap dan bisa diklik di atas tampilan yang sempurna.
+Tugas kuliah Keamanan Informasi, Assignment 1. Aku (Yae) pegang backend. Kamu bantu aku mengerjakan **backend saja**. Sumber kebenaran: `docs/PRD.md` (PRD gabungan versi tim). Struktur folder dan nama branch mengikuti `README.md` tim. Kalau ada yang bertentangan antara file ini dan PRD, tanya dulu sebelum menulis kode.
 
-Sumber kebenaran: **PRD Gabungan** (`docs/PRD.md` kalau sudah ditaruh di repo; versi online https://claude.ai/code/artifact/8d06c96a-3976-4510-a8ef-bf9d3ac193df). Kalau dokumen ini dan PRD bertentangan soal API, **PRD yang menang**.
+Inti penilaian: data user disimpan terenkripsi dengan AES, RC4, dan DES, bisa diambil lagi dalam bentuk asli, dan hanya bisa diakses setelah login username + password. Tampilan tidak dinilai.
 
-## Batas wilayah (wajib)
+## Batasan kerja
 
-Repo tim: https://github.com/CheekyMaestro/SecurityNetworkGroupProject. Kamu bekerja di branch **`fe`**. Backend belum ada; Yae membangunnya paralel di branch **`be`** dengan struktur folder di `README.md`.
+- Jangan ubah `app/templates/` dan `app/static/`. Itu milik Dzaky (frontend). Kalau butuh perubahan di sana, tulis catatan untukku.
+- Jangan ubah bentuk JSON di bagian "Kontrak API". Frontend sudah membuat mock dengan bentuk persis itu. Kalau memang harus berubah, berhenti dan tanya.
+- Semua gratis dan jalan di localhost. Jangan tambah layanan cloud, Docker, Redis, Postgres, atau dependency berbayar.
+- Jangan tambah fitur di luar scope (lupa password, verifikasi email, chat real-time, notifikasi, registrasi toko, deploy).
+- Jangan pernah menulis plaintext data user atau file ke disk, termasuk file temporary dan log.
+- Jangan log isi data pribadi, key, IV, atau password. Log cukup id dan ukuran.
+- Komentar kode seperlunya saja.
 
-Karena repo masih kosong, kamu juga membuat **kerangka aplikasi** yang nanti dipakai bersama:
-- `app/__init__.py`, `app/routes/__init__.py`
-- `app/main.py` minimal: buat `FastAPI()`, mount `app/static` di `/static`, siapkan `Jinja2Templates("app/templates")`, include router `pages`. Tambahkan komentar `# BE: include router API di sini (auth, profile, packages, files, claims, stats)` di tempat Yae akan menambahkan routernya.
-- `requirements.txt` berisi hanya yang dibutuhkan FE: `fastapi`, `uvicorn[standard]`, `jinja2`, `python-multipart`. Yae menambahkan sisanya.
-- `.env.example` kosong dengan komentar `# BE mengisi: MASTER_SECRET, JWT_SECRET`.
+## Stack
 
-Selain kerangka itu, kamu **hanya** boleh membuat atau mengubah:
-- `app/templates/**`, `app/static/**`
-- `app/routes/pages.py` (route `GET` yang hanya me-render template, tanpa akses database)
+Python 3.11+, FastAPI, SQLAlchemy 2.x, SQLite, PyCryptodome, passlib[bcrypt], PyJWT, python-multipart, Jinja2, pydantic-settings. Test pakai pytest + httpx (TestClient).
 
-**Jangan** membuat model, database, auth, endpoint API, atau modul enkripsi, walaupun halaman membutuhkannya. Semua data lewat mock (di bawah). Kalau butuh sesuatu dari backend, tulis di `docs/FE-NEEDS.md`.
+## Struktur folder
 
-Commit kecil per langkah dengan pesan yang jelas (mis. `fe: halaman brankas + mock packages`). Jangan push; saya yang push.
-
-## Cara FE bicara dengan BE
-
-- Semua data diambil lewat `fetch` dari JS ke endpoint API (cookie HttpOnly, `credentials: 'same-origin'`). Template hanya berisi kerangka halaman dan state loading.
-- Satu modul **`app/static/js/api.js`** untuk semua panggilan:
-  - `api.get(path)`, `api.post(path, body)`, `api.patch(path, body)`, `api.del(path)`, `api.upload(path, formData, onProgress)`
-  - `upload` memakai `XMLHttpRequest` (fetch tidak punya progress upload).
-  - Error: baca `{"detail": "..."}`, tampilkan ke user. Status **401** → redirect ke `/masuk?next=<halaman sekarang>` dengan pesan "Sesi berakhir, silakan masuk lagi".
-- **Mode mock**: aktif kalau URL berisi `?mock=1` atau `localStorage.awanMock === '1'` (bungkus akses localStorage dengan try/catch). Di mode mock, `api.js` mengembalikan isi `app/static/mock/*.json` dengan jeda 300 ms, menyimulasikan progress upload, dan menyimpan perubahan (paket baru, klaim baru, status) di memori. **Bentuk JSON mock harus persis kontrak di bawah.** Saat BE siap, cukup matikan mock; tidak ada kode halaman yang berubah.
-- Banner tipis di atas halaman "Mode mock aktif" kalau mock menyala, supaya tidak tertukar saat demo.
-- Media: video `<video controls src="/files/{id}/download?alg=aes">`, foto KTP `<img src="/files/{id}/download?alg=aes">`, dokumen = link unduh. Di mode mock pakai `app/static/mock/sample.mp4` (buat video pendek dengan ffmpeg kalau tersedia, kalau tidak tampilkan placeholder) dan `app/static/mock/ktp-contoh.png` (gambar placeholder buatan sendiri bertuliskan "CONTOH", **bukan KTP asli**).
-
-## Kontrak API (dari PRD, jangan diubah sepihak)
-
-| Method | Path | Dipakai di halaman |
-| --- | --- | --- |
-| POST | `/auth/register` body `{username, password}` | Daftar |
-| POST | `/auth/login` body `{username, password}` → bentuk `/auth/me` | Masuk |
-| POST | `/auth/logout` | Menu akun |
-| GET | `/auth/me` | Semua halaman (nama, peran, navigasi) |
-| GET | `/profile?alg=aes` · PUT `/profile` body `{data:{...11 field}}` | Profil & KTP |
-| GET | `/packages` · POST `/packages` body `{item_name, store, order_no}` · GET `/packages/{id}` | Brankas, Simpan unboxing, Detail paket |
-| POST | `/files` multipart `file`, `category` (`id_card`/`document`/`video`), `package_id`? | Simpan unboxing, Profil |
-| GET | `/files?category=` · GET `/files/{id}/download?alg=` · DELETE `/files/{id}` | Detail paket, Profil |
-| GET | `/stats` | Statistik |
-| GET | `/stores` | Ajukan klaim |
-| POST | `/claims` body `{package_id, store_user_id, message}` → `{id, status}` | Ajukan klaim |
-| GET | `/claims` · GET `/claims/{id}` · PATCH `/claims/{id}` body `{status, reply}` · POST `/claims/{id}/replies` body `{body}` | Detail paket, sisi toko |
-
-Status klaim: `diajukan`, `ditinjau`, `diterima`, `ditolak`. Parameter `alg`: `aes` (default), `rc4`, `des`. File yang bukan haknya → 404.
-
-### Bentuk JSON (salin ke `app/static/mock/`)
-
-`auth-me.json`
-```json
-{"id": 1, "username": "dzaky", "role": "buyer", "store_name": null}
 ```
-Akun toko di mock: `{"id": 21, "username": "elektra", "role": "store", "store_name": "Toko Elektra"}`. Mode mock bisa pindah peran lewat `?mock=1&role=store`.
-
-`profile.json`
-```json
-{"algorithm": "aes", "decrypt_ms": 0.42, "updated_at": "2026-10-14T10:12:00+07:00",
- "data": {"full_name": "Dzaky A.", "nik": "3578xxxxxxxxxxxx", "birth_date": "2004-05-12", "gender": "Laki-laki",
-          "nationality": "WNI", "marital_status": "Belum kawin", "address": "Jl. Contoh No. 12, Surabaya",
-          "phone": "0812xxxxxxxx", "bank_account": "BCA 1234xxxxxx", "religion": null, "health_notes": null},
- "id_card_file_id": 7}
+app/
+  main.py            # buat app, mount static, include router
+  config.py          # Settings dari .env
+  db.py              # engine, SessionLocal, Base, get_db
+  models.py          # semua tabel SQLAlchemy
+  schemas.py         # Pydantic request/response, ikut kontrak
+  deps.py            # get_current_user, require_buyer, require_store
+  security/
+    passwords.py     # hash dan verify bcrypt
+    sessions.py      # buat/baca JWT, set/hapus cookie
+  crypto/            # modul enkripsi (bagian Anggota 2, lihat "Modul enkripsi")
+    aes.py rc4.py des.py   # implementasi per algoritma
+    _cbc.py          # streaming CBC + PKCS7, dipakai aes.py dan des.py
+    keys.py
+    vault.py
+  services/
+    profile.py
+    files.py
+    packages.py
+    claims.py
+    stats.py
+  routes/
+    auth.py profile.py packages.py files.py claims.py stores.py stats.py
+    pages.py         # MILIK FE (branch fe), jangan dibuat/diubah di sini
+  templates/         # JANGAN DIUBAH (frontend)
+  static/            # JANGAN DIUBAH (frontend)
+scripts/seed.py      # buat akun toko dan pembeli demo
+tests/
+storage/             # ciphertext file, di .gitignore
+.env.example
+requirements.txt
 ```
 
-`packages.json`
-```json
-{"items": [{"id": 3, "item_name": "Monitor 24 inci", "store": "Toko Elektra", "order_no": "INV/2026/10/0412",
-            "created_at": "2026-10-11T16:45:00+07:00", "video_file_id": 12, "document_count": 2, "total_size_bytes": 190840112}]}
+`.gitignore` wajib memuat: `.env`, `storage/`, `*.db`, `__pycache__/`, `.venv/`, `lab-session-information-security-main/` (materi mentor, hanya referensi).
+
+## Konfigurasi (.env)
+
 ```
-Tambahkan 2–3 paket lagi (mis. Sepatu lari ukuran 42 / Sportiva, Kabel data USB-C / Toko Elektra), satu tanpa dokumen.
-
-`package-3.json` (bentuk `GET /packages/{id}`)
-```json
-{"id": 3, "item_name": "Monitor 24 inci", "store": "Toko Elektra", "order_no": "INV/2026/10/0412", "created_at": "2026-10-11T16:45:00+07:00",
- "files": [
-  {"id": 12, "package_id": 3, "category": "video", "name": "unboxing-monitor.mp4", "mime_type": "video/mp4", "size_bytes": 190601216, "created_at": "2026-10-11T16:45:00+07:00", "algorithms": ["aes","rc4","des"]},
-  {"id": 13, "package_id": 3, "category": "document", "name": "invoice-elektra.pdf", "mime_type": "application/pdf", "size_bytes": 2888, "created_at": "2026-10-11T16:46:00+07:00", "algorithms": ["aes","rc4","des"]}],
- "claim": {"id": 5, "status": "ditinjau"}}
-```
-`claim` bernilai `null` kalau belum pernah diajukan.
-
-`files.json` (bentuk `GET /files`, satu objek file sama seperti di atas): `{"items": [ ... ]}`
-
-`stats.json`
-```json
-{"per_algorithm": [
-  {"algorithm": "aes", "avg_enc_ms_per_mb": 4.1, "avg_dec_ms_per_mb": 3.9, "total_cipher_bytes": 191004672},
-  {"algorithm": "rc4", "avg_enc_ms_per_mb": 2.7, "avg_dec_ms_per_mb": 2.6, "total_cipher_bytes": 190601216},
-  {"algorithm": "des", "avg_enc_ms_per_mb": 21.8, "avg_dec_ms_per_mb": 21.2, "total_cipher_bytes": 191004680}],
- "per_category": [{"category": "video", "algorithm": "aes", "avg_enc_ms_per_mb": 4.0}]}
-```
-Angka mock hanya ilustrasi; halaman Statistik di mode mock menampilkan label "Data contoh".
-
-`stores.json`
-```json
-{"items": [{"id": 21, "store_name": "Toko Elektra"}, {"id": 22, "store_name": "Sportiva"}]}
+MASTER_SECRET=          # 32 byte acak, base64. Generate: python -c "import os,base64;print(base64.b64encode(os.urandom(32)).decode())"
+JWT_SECRET=             # string acak, terpisah dari MASTER_SECRET
+DATABASE_URL=sqlite:///./awan.db
+STORAGE_DIR=./storage
+SESSION_MINUTES=60
 ```
 
-`claims.json` (bentuk `GET /claims`)
-```json
-{"items": [{"id": 5, "package_id": 3, "item_name": "Monitor 24 inci", "order_no": "INV/2026/10/0412", "buyer_name": "Dzaky A.",
-            "store_name": "Toko Elektra", "status": "ditinjau", "video_file_id": 12, "created_at": "2026-10-12T14:20:00+07:00"}]}
+Aplikasi harus gagal start dengan pesan jelas kalau `MASTER_SECRET` atau `JWT_SECRET` kosong.
+
+## Desain enkripsi
+
+### Algoritma
+
+| Algoritma  | Mode   | Key     | IV / nonce         | Padding   |
+| ---------- | ------ | ------- | ------------------ | --------- |
+| AES        | CBC    | 32 byte | IV acak 16 byte    | PKCS7     |
+| DES        | CBC    | 8 byte  | IV acak 8 byte     | PKCS7     |
+| RC4 (ARC4) | stream | 16 byte | nonce acak 16 byte | tidak ada |
+
+Setiap data dienkripsi **terpisah** dengan ketiga algoritma: satu data menghasilkan tiga ciphertext. Bukan enkripsi berlapis.
+
+RC4: key yang dipakai untuk satu ciphertext = 16 byte pertama `HMAC-SHA256(rc4_key, nonce)`. Jangan pernah pakai key RC4 yang sama dua kali.
+
+### Key user
+
+- Tiap user punya `key_salt` acak 16 byte, dibuat saat register.
+- `HKDF-SHA256(MASTER_SECRET, salt=key_salt, info=b"awan-user-v1")`, panjang 56 byte, dipotong jadi AES 32 | RC4 16 | DES 8.
+- Key user tidak pernah disimpan. Selalu diturunkan ulang saat dibutuhkan.
+- Key user dipakai untuk: profil (`profile_ciphertexts`), metadata paket (`packages.meta_ciphertext`, AES saja), nama file (`files.name_ciphertext`, AES saja), dan membungkus kunci file.
+
+### Kunci file terbungkus per penerima
+
+1. Saat upload, buat kunci file acak per algoritma (AES 32, RC4 16, DES 8). Isi file dienkripsi dengan kunci ini.
+2. Tiap kunci file dibungkus dengan AES-256-GCM memakai key AES pemilik, simpan di `file_keys` (satu baris per file x penerima x algoritma). Simpan `wrap_nonce` (12 byte), `wrapped_key`, `wrap_tag`.
+3. Saat klaim diajukan: buka bungkus dengan key pemilik, bungkus ulang dengan key AES admin toko tujuan (HKDF dari `key_salt` toko), tambah baris `file_keys` untuk toko itu. Lakukan untuk semua file di paket yang diklaim, kecuali `id_card`.
+4. Saat unduh: cari baris `file_keys` untuk (file, user login, algoritma). Tidak ada baris = 404.
+
+Profil (NIK, HP, alamat, rekening) **tidak pernah** dibungkus untuk toko.
+
+### Streaming file besar
+
+- Baca upload per potongan 64 KB, enkripsi langsung ke tiga file ciphertext di `storage/` secara bersamaan. Jangan muat file utuh ke RAM.
+- CBC: pakai satu objek cipher per file, sisakan byte yang belum kelipatan block, padding hanya di potongan terakhir. Saat dekripsi, tahan block terakhir sampai akhir stream lalu unpad.
+- Nama file di disk: UUID4 + akhiran algoritma, mis. `storage/ab/abcd...-aes.bin`. Nama asli ikut dienkripsi di database.
+- Tegakkan batas ukuran saat streaming (bukan setelah selesai): KTP 5 MB, dokumen 20 MB, video 100 MB. Lewat batas: hapus file parsial, balas 413.
+- Validasi ekstensi dan MIME: `id_card` jpg/jpeg/png, `document` pdf/doc/docx/xls/xlsx, `video` mp4/mkv/mov. Salah format: 400.
+- Catat `enc_time_ms` per algoritma per file.
+- Kalau upload gagal di tengah, hapus semua file ciphertext parsial dan rollback baris database.
+
+### Modul enkripsi (bagian Anggota 2)
+
+Modul `app/crypto/` dikerjakan Anggota 2. Backend hanya memakai interface ini. Kalau modulnya belum ada di repo, buat implementasi sementara yang memenuhi interface dan test yang sama, lalu beri tahu aku supaya bisa diganti.
+
+```python
+Algorithm = Literal["aes", "rc4", "des"]
+
+# keys.py
+def new_key_salt() -> bytes                                                  # 16 byte, saat register
+def derive_user_keys(key_salt: bytes, master_secret: bytes | None = None) -> dict[Algorithm, bytes]   # default MASTER_SECRET dari .env
+def new_file_keys() -> dict[Algorithm, bytes]
+
+# vault.py (memanggil aes.py / rc4.py / des.py sesuai alg)
+def encrypt_bytes(alg, key, plaintext: bytes) -> tuple[bytes, bytes]          # (iv_or_nonce, ciphertext)
+def decrypt_bytes(alg, key, iv: bytes, ciphertext: bytes) -> bytes
+class StreamEncryptor:   # __init__(alg, key) -> .iv ; .update(chunk) -> bytes ; .finalize() -> bytes
+class StreamDecryptor:   # __init__(alg, key, iv) ; .update(chunk) -> bytes ; .finalize() -> bytes
+def wrap_key(kek: bytes, key: bytes) -> tuple[bytes, bytes, bytes]             # (nonce, wrapped, tag)
+def unwrap_key(kek: bytes, nonce: bytes, wrapped: bytes, tag: bytes) -> bytes
 ```
 
-`claim-5.json` (bentuk `GET /claims/{id}` dan response `PATCH`)
+## Skema database
+
+| Tabel               | Kolom                                                                                                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| users               | id, username (unik), password_hash, key_salt, role (`buyer`/`store`), store_name (nullable), created_at                                                                              |
+| profile_ciphertexts | id, user_id, algorithm, iv, ciphertext, enc_time_ms, updated_at (3 baris per user, unik per user+algorithm)                                                                          |
+| packages            | id, user_id, meta_iv, meta_ciphertext, created_at (meta = JSON `{item_name, store, order_no}` dienkripsi AES)                                                                        |
+| files               | id, user_id, package_id (nullable), category (`id_card`/`document`/`video`), name_iv, name_ciphertext, mime_type, size_bytes, created_at                                             |
+| file_ciphertexts    | id, file_id, algorithm, iv, storage_path, enc_time_ms                                                                                                                                |
+| file_keys           | id, file_id, user_id, algorithm, wrap_nonce, wrapped_key, wrap_tag (unik per file+user+algorithm)                                                                                    |
+| claims              | id, package_id, buyer_id, store_user_id, status (`diajukan`/`ditinjau`/`diterima`/`ditolak`), message_iv, message_ciphertext, summary_iv, summary_ciphertext, created_at, updated_at |
+| claim_replies       | id, claim_id, author_id, body_iv, body_ciphertext, created_at                                                                                                                        |
+| claim_keys          | id, claim_id, user_id, wrap_nonce, wrapped_key, wrap_tag (unik per claim+user)                                                                                                       |
+| decrypt_logs        | id, file_id, user_id (yang mengunduh), algorithm, dec_time_ms, size_bytes, created_at                                                                                                |
+
+Pesan, balasan, dan `summary` klaim (JSON `{buyer_name, item_name, order_no}`, salinan saat klaim dibuat) dienkripsi AES dengan **kunci klaim** acak 32 byte, yang dibungkus AES-GCM untuk pembeli dan toko di `claim_keys`.
+
+Profil disimpan sebagai JSON 11 field, dienkripsi 3 kali. `religion` dan `health_notes` opsional (boleh `null`), sisanya wajib.
+
+Hapus file = hapus baris `files`, `file_ciphertexts`, `file_keys`, dan tiga file di disk.
+
+## Auth dan sesi
+
+- Register: username 3 sampai 32 karakter `[a-zA-Z0-9_]`, password minimal 8 karakter. Username sudah dipakai: 400.
+- Login salah: 401 dengan `{"detail": "Username atau password salah"}`, tanpa menyebut mana yang salah.
+- JWT (HS256) berisi `sub` = user id dan `role`, disimpan di cookie `session` dengan `HttpOnly`, `SameSite=Lax`, `Path=/`, umur `SESSION_MINUTES`.
+- Sesi geser: setiap request yang lolos auth mengeluarkan cookie baru dengan masa berlaku diperpanjang, supaya upload besar tidak memutus sesi.
+- Endpoint API tanpa sesi valid: 401. Route halaman milik FE; FE mengecek sesi lewat `GET /auth/me` dan mengarahkan ke `/masuk` saat 401.
+- Pembeli tidak bisa memakai endpoint khusus toko dan sebaliknya: 403. Tapi akses ke resource milik orang lain selalu 404, bukan 403.
+
+## Kontrak API
+
+Error selalu `{"detail": "pesan untuk user"}` dengan status 400, 401, 403, 404, atau 413. Waktu memakai ISO 8601 dengan offset `+07:00`. Parameter `alg` default `aes`; nilai selain `aes`/`rc4`/`des`: 400.
+
+| Method | Path                         | Siapa                                    | Fungsi                                                                                   |
+| ------ | ---------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------- |
+| POST   | /auth/register               | publik                                   | Buat akun pembeli                                                                        |
+| POST   | /auth/login                  | publik                                   | Verifikasi, set cookie                                                                   |
+| POST   | /auth/logout                 | login                                    | Hapus cookie                                                                             |
+| GET    | /auth/me                     | login                                    | User login: `{id, username, role, store_name}` (juga bentuk response login dan register) |
+| GET    | /profile?alg=aes             | pembeli                                  | Profil terdekripsi                                                                       |
+| PUT    | /profile                     | pembeli                                  | Body `{"data": {...11 field}}`, simpan profil, enkripsi 3 kali                           |
+| POST   | /packages                    | pembeli                                  | Buat paket                                                                               |
+| GET    | /packages                    | pembeli                                  | Daftar paket + jumlah file                                                               |
+| GET    | /packages/{id}               | pembeli                                  | Detail paket + daftar file                                                               |
+| POST   | /files                       | pembeli                                  | Upload multipart: `file`, `category`, `package_id` (opsional)                            |
+| GET    | /files?category=video        | pembeli                                  | Daftar file milik user                                                                   |
+| GET    | /files/{id}/download?alg=des | pemilik atau toko yang punya `file_keys` | Unduh file terdekripsi (streaming, `Content-Disposition` dengan nama asli)               |
+| DELETE | /files/{id}                  | pemilik                                  | Hapus file + 3 ciphertext                                                                |
+| GET    | /stats                       | pembeli                                  | Waktu dan ukuran per algoritma                                                           |
+| GET    | /stores                      | pembeli                                  | Daftar toko                                                                              |
+| POST   | /claims                      | pembeli                                  | Ajukan klaim: `package_id`, `store_user_id`, `message`                                   |
+| GET    | /claims                      | keduanya                                 | Pembeli: klaim miliknya. Toko: klaim ke tokonya                                          |
+| GET    | /claims/{id}                 | keduanya                                 | Detail klaim, file, balasan                                                              |
+| PATCH  | /claims/{id}                 | toko                                     | Ubah status + balasan                                                                    |
+| POST   | /claims/{id}/replies         | keduanya                                 | Tambah balasan                                                                           |
+
+Contoh bentuk yang sudah disepakati dengan frontend (angka hanya ilustrasi):
+
+`GET /profile?alg=aes`
+
 ```json
-{"id": 5, "status": "ditinjau", "message": "Layar retak di pojok kanan bawah", "created_at": "2026-10-12T14:20:00+07:00",
- "package": {"id": 3, "item_name": "Monitor 24 inci", "order_no": "INV/2026/10/0412"},
- "buyer": {"name": "Dzaky A.", "ktp_verified": true},
- "store": {"id": 21, "store_name": "Toko Elektra"},
- "files": [{"id": 12, "category": "video", "name": "unboxing-monitor.mp4", "mime_type": "video/mp4", "size_bytes": 190601216}],
- "replies": [{"id": 1, "author_role": "store", "author_name": "Toko Elektra", "body": "Video sudah kami terima, kami cek ke kurir dulu.", "created_at": "2026-10-13T09:05:00+07:00"}]}
-```
-
-## Halaman
-
-Route halaman di `pages.py` (semua `GET`, hanya render template). Halaman pembeli dan toko mengecek `/auth/me` di JS: belum login → `/masuk`; peran salah → arahkan ke beranda perannya.
-
-| Route | Halaman | Peran | Isi utama |
-| --- | --- | --- | --- |
-| `/masuk` | Masuk | publik | Kiri panel gradasi langit + awan + maskot + "Bukti unboxing kamu, terkunci sampai dibutuhkan." Kanan form username/password, tombol Masuk, link Daftar. Pesan error di atas form tanpa menyebut field mana yang salah |
-| `/daftar` | Daftar | publik | Username, password, konfirmasi password. Catatan "Datamu akan dienkripsi". Sukses → masuk otomatis → `/profil?baru=1` |
-| `/brankas` | Brankas saya | pembeli | Stat tile: PAKET, DOKUMEN, UKURAN TERENKRIPSI, ALGORITMA (`AES · RC4 · DES`). Tabel paket: thumbnail gradasi + ikon play, nama barang, no. pesanan (mono), toko, tanggal, jumlah dokumen, badge status klaim kalau ada, link Lihat. Tombol utama **+ Simpan unboxing**. Empty state: maskot + "Belum ada unboxing tersimpan" |
-| `/unboxing/baru` | Simpan unboxing | pembeli | Panel Video: drop zone + pratinjau video lokal + nama/ukuran. Panel Info paket (baris label/kontrol): nama barang, toko (teks), no. pesanan. Panel Dokumen: tambah PDF/DOC/DOCX/XLS/XLSX (boleh banyak). Footer Batal · **Simpan ke brankas**. Urutan: `POST /packages` → `POST /files` video → `POST /files` tiap dokumen, progress per file, lalu toast "Tersimpan dan terenkripsi" → `/paket/{id}`. Validasi di klien: video ≤ 100 MB (mp4/mkv/mov), dokumen ≤ 20 MB |
-| `/paket/{id}` | Detail paket | pembeli | Kiri: player video, panel Dokumen (ikon jenis, nama, ukuran mono, Unduh, Hapus dengan dialog konfirmasi). Kanan: panel Klaim (belum ada → tombol **Ajukan klaim**; sudah ada → status timeline + percakapan + kotak balas). Panel **Mode demo** yang bisa dilipat: pilih AES / RC4 / DES untuk pemutar dan tombol unduh, dengan catatan "Ketiganya menghasilkan file yang sama" |
-| `/paket/{id}/klaim` | Ajukan klaim | pembeli | Alur fokus tanpa rail. Kotak pemberitahuan di atas: "Tenang, toko hanya melihat video dan dokumen paket ini. Tidak ada yang terkirim sebelum kamu menekan Kirim." Pilih toko (`GET /stores`), tulis keluhan, ringkasan file yang akan dibuka toko (kartu kecil per file), panel hijau "NIK, nomor HP, dan rekeningmu tidak ikut dibagikan." Tombol Kembali · **Kirim ke {toko}** → `POST /claims` → kembali ke `/paket/{id}` |
-| `/profil` | Profil & KTP | pembeli | Sidebar sub-menu (DATA PRIBADI · Identitas · Foto KTP). Panel 11 field (label kiri, input kanan); agama dan riwayat kesehatan bertanda "Opsional, boleh dikosongkan". NIK dan rekening disamarkan dengan tombol tampilkan. Panel Foto KTP: pratinjau + ganti (`POST /files` category `id_card`, ≤ 5 MB JPG/PNG). Footer Batal · Simpan (`PUT /profile`). Mode demo: dropdown algoritma untuk `GET /profile?alg=` + tampilkan `decrypt_ms` |
-| `/statistik` | Statistik enkripsi | pembeli | Tabel + grafik batang (Chart.js) waktu enkripsi/dekripsi per MB dan ukuran ciphertext per algoritma, dari `GET /stats`. Satu kalimat penjelasan: "RC4 dan DES dipakai karena syarat tugas; keduanya sudah tidak dianggap aman." |
-| `/toko` | Klaim masuk | toko | Chip filter status, grid kartu klaim (thumbnail, badge status, nama barang, no. pesanan mono, nama pembeli, tombol Tinjau). Empty state "Belum ada klaim masuk" |
-| `/toko/klaim/{id}` | Tinjau klaim | toko | Player video besar, panel Dokumen (Unduh), panel Pembeli (nama + "KTP terverifikasi", **tanpa** NIK/HP/rekening), panel Keputusan (radio Terima / Tolak / Minta bukti tambahan → `diterima` / `ditolak` / `ditinjau`) + balasan, footer **Simpan keputusan** (`PATCH /claims/{id}`). Percakapan di bawah |
-
-Navigasi:
-- **Pembeli** (icon rail kiri): Brankas · Simpan unboxing · Profil & KTP · Statistik. Top bar: logo + `Awan / {username}`, menu akun dengan Keluar.
-- **Toko** (tanpa rail, top bar saja): logo + label kapital "TOKO" + nama toko, tab Klaim masuk, menu akun.
-
-## State yang wajib ada
-
-| Situasi | Tampilan |
-| --- | --- |
-| Memuat data | Skeleton abu di posisi konten (bukan spinner di tengah layar) |
-| Daftar kosong | Maskot + kalimat + tombol aksi utama |
-| Upload berjalan | Progress bar per file, tombol simpan nonaktif, peringatan kalau user mencoba menutup halaman |
-| Sukses simpan | Toast kanan bawah, 3 detik |
-| Error validasi / dari server | Pesan merah kecil di bawah field atau di atas form, isi dari `detail` |
-| Sesi habis (401) | Redirect ke `/masuk` dengan pesan |
-| Hapus | Dialog konfirmasi |
-| 404 | Halaman "Data tidak ditemukan" dengan tombol kembali ke beranda peran |
-
-## Desain: baseline UI Supabase, tema terang, warna langit
-
-Acuan struktur: dashboard **Supabase** di Figma, halaman "Idea Dump":
-https://www.figma.com/design/hE8Oo6WJlXG3gXBmG1mVXo/Brankas-Unboxing-%E2%80%94-Foundations?node-id=19-1629
-Kalau Figma MCP tersedia, buka frame acuannya untuk mengukur. Brankas → `19:1630` (Project home), Profil & Simpan unboxing → `19:4120` (Organization Settings), Klaim masuk toko → `19:8091` (Organizations), tabel/badge → `19:4658`, `19:7301`. Supabase gelap dan hijau; kita **terang** dan **biru langit**. Jangan meniru logo atau nama Supabase.
-
-**Tipografi** (Google Fonts: Inter 400/500/600, Manrope 600, Source Code Pro 400/500)
-| Peran | Font | Ukuran / line-height |
-| --- | --- | --- |
-| Judul halaman | Manrope SemiBold | 22 / 29, tracking −0.55px |
-| Judul bagian | Manrope SemiBold | 18 / 25 |
-| Judul sidebar | Manrope SemiBold | 16 / 25 |
-| Teks UI | Inter Medium | 13 / 19.5 |
-| Tombol, link kecil | Inter Medium | 12 / 16 |
-| Penjelasan | Inter Regular | 13 / 19.5, warna muted |
-| Label | Source Code Pro Medium | 11 / 16, KAPITAL, tracking +0.06em |
-| Data teknis | Source Code Pro Regular | 12 / 16 |
-| Nilai stat | Inter Medium | 15 / 22 |
-
-**Layout**: top bar 48 px berborder bawah; icon rail 48 px (ikon Lucide 18 px dalam kotak 32 px, aktif berlatar `--surface-hover`, tooltip nama); sidebar sub-menu 256 px hanya di Profil; konten maks. 1120 px di tengah, padding atas 48 px; antarbagian 40 px; kelipatan 4 untuk jarak.
-**Panel**: putih, border 1 px, radius 8. Panel form = baris label kiri (±45%) dan kontrol kanan, pembatas 1 px, footer kanan Batal + Simpan.
-**Stat tile**: kotak ikon 40×40 radius 8 berborder + label mono kapital + nilai 15 px.
-**Tombol**: tinggi 26 (default) atau 32 (besar), radius 6, Inter Medium 12. Primary `--brand-600` teks putih border `--brand-500`; default putih border `--border-strong`; ghost transparan; bahaya teks `--bad`.
-**Input**: tinggi 32, radius 6, latar `--surface-input`, border `--border-strong`, fokus ring 2 px `--brand-200`.
-**Badge**: pill tinggi 18, Source Code Pro 10 kapital. DIAJUKAN (brand), DITINJAU (warn), DITERIMA (ok), DITOLAK (bad).
-**Ikon**: Lucide via CDN `https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js`, stroke 1.5.
-**Grafik**: Chart.js `https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js`, batang warna `--brand-600`, `--brand-400`, `--brand-200` untuk AES/RC4/DES.
-**Tailwind** boleh via CDN untuk utilitas, tapi token warna dan font wajib dari `app/static/css/app.css`:
-
-```css
-:root{
-  --brand-700:#003A93; --brand-600:#004CBC; --brand-500:#1A66C6; --brand-400:#3986D6;
-  --brand-300:#5BACE4; --brand-200:#74C7F1; --brand-100:#A9DCF9; --brand-50:#DEF1FF; --brand-25:#EEF8FF;
-  --bg:#F7F9FB; --surface:#FFFFFF; --surface-hover:#EFF3F7; --surface-input:#FAFBFC;
-  --border:#E3E8EE; --border-strong:#CBD3DC;
-  --ink:#11181F; --ink-2:#3C4651; --muted:#6B7684;
-  --ok:#1A7F4B; --ok-soft:#E3F4EA; --warn:#A15C00; --warn-soft:#FFF1D6; --bad:#C0392B; --bad-soft:#FDE6E3;
-  --radius-sm:6px; --radius-md:8px; --radius-pill:999px;
-  --sky:linear-gradient(180deg,#004CBC 0%,#1A66C6 30%,#5BACE4 60%,#A9DCF9 80%,#E9FDFE 100%);
+{
+  "algorithm": "aes",
+  "decrypt_ms": 0.42,
+  "updated_at": "2026-10-14T10:12:00+07:00",
+  "data": {
+    "full_name": "Dzaky A.",
+    "nik": "3578xxxxxxxxxxxx",
+    "birth_date": "2004-05-12",
+    "gender": "Laki-laki",
+    "nationality": "WNI",
+    "marital_status": "Belum kawin",
+    "address": "Jl. Contoh No. 12, Surabaya",
+    "phone": "0812xxxxxxxx",
+    "bank_account": "BCA 1234xxxxxx",
+    "religion": null,
+    "health_notes": null
+  },
+  "id_card_file_id": 7
 }
 ```
-- Aplikasi datar seperti Supabase. Gradasi `--sky` hanya di panel kiri Masuk/Daftar dan thumbnail video; boleh 2–3 awan putih lembut (elips blur).
-- Maskot `app/static/img/logo.svg` (sudah disediakan) di top bar, halaman masuk, dan empty state.
-- Bahasa Indonesia santai dan menenangkan. Tombol 1–3 kata diawali kata kerja. Judul maks. 6 kata.
 
-## Komponen Jinja (buat dulu, pakai di semua halaman)
+Profil belum pernah diisi: `data` berisi semua field `null`, `updated_at` dan `id_card_file_id` `null`.
 
-`app/templates/components/`: `button`, `input`, `select`, `textarea`, `badge`, `panel` (dengan slot header/footer), `form_row`, `stat_tile`, `nav_rail`, `top_bar`, `empty_state`, `toast` (JS), `dialog` (JS), `file_row`, `skeleton`. `base.html` memuat font, `app.css`, Lucide, `api.js`, dan `app.js` (toast, dialog, guard login).
+`GET /packages`
+
+```json
+{
+  "items": [
+    {
+      "id": 3,
+      "item_name": "Monitor 24 inci",
+      "store": "Toko Elektra",
+      "order_no": "INV/2026/10/0412",
+      "created_at": "2026-10-11T16:45:00+07:00",
+      "video_file_id": 12,
+      "document_count": 2,
+      "total_size_bytes": 190840112
+    }
+  ]
+}
+```
+
+`GET /files?category=video`
+
+```json
+{
+  "items": [
+    {
+      "id": 12,
+      "package_id": 3,
+      "category": "video",
+      "name": "unboxing-monitor.mp4",
+      "mime_type": "video/mp4",
+      "size_bytes": 190601216,
+      "created_at": "2026-10-11T16:45:00+07:00",
+      "algorithms": ["aes", "rc4", "des"]
+    }
+  ]
+}
+```
+
+`GET /stats`
+
+```json
+{
+  "per_algorithm": [
+    {
+      "algorithm": "aes",
+      "avg_enc_ms_per_mb": 4.1,
+      "avg_dec_ms_per_mb": 3.9,
+      "total_cipher_bytes": 191004672
+    },
+    {
+      "algorithm": "rc4",
+      "avg_enc_ms_per_mb": 2.7,
+      "avg_dec_ms_per_mb": 2.6,
+      "total_cipher_bytes": 190601216
+    },
+    {
+      "algorithm": "des",
+      "avg_enc_ms_per_mb": 21.8,
+      "avg_dec_ms_per_mb": 21.2,
+      "total_cipher_bytes": 191004680
+    }
+  ],
+  "per_category": [
+    { "category": "video", "algorithm": "aes", "avg_enc_ms_per_mb": 4.0 }
+  ]
+}
+```
+
+Contoh `/auth/me`, `/packages/{id}`, `/stores`, `POST /claims`, `/claims`, `/claims/{id}` ada di `docs/PRD.md` (bagian "Contoh JSON response") dan di CLAUDE.md branch `fe`; ikuti persis. Yang belum dicontohkan di PRD ditulis di `docs/api-contract.md`.
+
+## Route halaman
+
+Route halaman (`/masuk`, `/daftar`, `/brankas`, `/unboxing/baru`, `/paket/{id}`, `/paket/{id}/klaim`, `/profil`, `/statistik`, `/toko`, `/toko/klaim/{id}`) dan `app/routes/pages.py` dikerjakan Dzaky di branch `fe`. `app/main.py` meng-include `pages` kalau modulnya ada. Path API tidak boleh bentrok dengan path halaman.
+
+## Hal yang PRD belum jelaskan (tanya aku sebelum memutuskan)
+
+1. **Pesan klaim dan balasan.** DIPUTUSKAN: kunci klaim acak, dibungkus untuk pembeli dan toko di `claim_keys`.
+2. **Nama pembeli untuk toko.** DIPUTUSKAN: salinan nama pembeli (nama lengkap profil, atau username kalau profil kosong), nama barang, dan no. pesanan dienkripsi dengan kunci klaim. "KTP terverifikasi" = pembeli punya file `id_card`. Toko tidak pernah menerima NIK, HP, alamat, rekening, atau foto KTP.
+3. **`avg_dec_ms_per_mb`.** DIPUTUSKAN: `decrypt_logs` diisi setiap unduhan yang selesai (unduhan terputus tidak dicatat). Hanya waktu dekripsi yang diukur. Rata-rata per MB di `/stats` tertimbang (total ms / total MB) atas file milik pembeli, termasuk unduhan oleh toko.
+4. **Seek video.** Download streaming tanpa dukungan HTTP Range membuat video bisa diputar tapi tidak bisa dimajukan. Cukup untuk demo kecuali aku minta lebih.
+
+Ditunda (setelah Assignment 1): fitur chat pembeli dan toko di web. Sementara percakapan memakai balasan klaim.
 
 ## Urutan kerja
 
-1. `app.css` (token + font), `base.html`, komponen, `api.js` dengan mode mock + semua file mock, `pages.py`
-2. Masuk, Daftar
-3. Brankas, Simpan unboxing (dengan upload + progress)
-4. Detail paket, Ajukan klaim
-5. Profil & KTP
-6. Sisi toko: Klaim masuk, Tinjau klaim
-7. Statistik
-8. `docs/FE-NOTES.md`: cara menyalakan/mematikan mock, daftar halaman, dan apa yang butuh dicek bersama Yae saat sambung
+Kerjakan satu fase, jalankan test, lalu commit sebelum lanjut. Di akhir tiap fase, ringkas apa yang selesai dan apa yang perlu aku cek.
 
-Setelah tiap langkah, jalankan server dan buka halamannya dengan `?mock=1` di browser (Playwright boleh) untuk memastikan tampil dan bisa diklik. Bandingkan kepadatan, ukuran font, radius, dan border dengan frame Figma acuannya.
+1. **Skeleton**: struktur folder, config, db, `.env.example`, `.gitignore`, `requirements.txt`, README cara jalan. Semua endpoint ada sebagai stub yang mengembalikan contoh JSON kontrak, supaya frontend bisa langsung pakai `/docs`.
+2. **Modul enkripsi + test**: interface di atas, round-trip ketiga algoritma.
+3. **Auth**: register, login, logout, sesi, dependency role.
+4. **Profil**: PUT dan GET dengan pilihan algoritma.
+5. **Paket dan file**: upload streaming, list, download, delete, batas ukuran.
+6. **Klaim dan toko**: `file_keys` dibungkus ulang, endpoint klaim, seed akun toko.
+7. **Stats**.
+8. **Pengujian akhir**: semua test hijau, skenario demo dari awal sampai akhir.
 
-## Di luar scope
+## Seed
 
-Logika backend apa pun, rekam kamera langsung, chat real-time, email, dark mode, tampilan mobile, deploy.
+`python scripts/seed.py` membuat dua akun toko (`elektra` / Toko Elektra, `gadgetin` / Toko Gadgetin) dan satu pembeli demo (`dzaky`). Password diambil dari argumen atau dicetak ke terminal, tidak di-hardcode di repo. Seed aman dijalankan dua kali.
+
+## Test wajib
+
+- Round-trip encrypt/decrypt tiap algoritma untuk ukuran 0 byte, 1 byte, 15/16/17 byte, tepat 64 KB, 64 KB + 1, dan 1 MB. Hasil dekripsi harus identik byte per byte.
+- Ciphertext tidak sama dengan plaintext, dan dua enkripsi data yang sama menghasilkan ciphertext berbeda.
+- Upload satu file menghasilkan tepat 3 baris `file_ciphertexts`, 3 file di disk, dan 3 baris `file_keys` milik pemilik.
+- Unduh dengan `alg=aes`, `rc4`, dan `des` menghasilkan file yang sama dengan aslinya.
+- User lain mengakses file, paket, atau klaim yang bukan miliknya: 404.
+- Toko tanpa klaim mengakses file: 404. Setelah klaim ke Toko Elektra: Toko Elektra bisa unduh (200), Toko Gadgetin tetap 404.
+- Klaim tidak pernah membuat baris `file_keys` untuk file `id_card`.
+- File melebihi batas: 413 dan tidak ada file parsial tersisa di `storage/`.
+- Endpoint tanpa cookie: 401. Login salah: 401 dengan pesan generik.
+- Tidak ada plaintext tersimpan: setelah upload file berisi string penanda, string itu tidak muncul di `storage/` maupun file database.
+
+## Perintah
+
+```
+python -m venv .venv && source .venv/bin/activate    # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env    # lalu isi secret
+python scripts/seed.py
+uvicorn app.main:app --reload
+pytest -q
+```
+
+## Git
+
+Repo tim: https://github.com/CheekyMaestro/SecurityNetworkGroupProject. Kerja di branch `be` (FE di `fe`). Commit kecil per fase dengan pesan singkat bahasa Inggris (`feat: streaming file encryption`). Gabung ke `main` lewat PR, jangan push ke `main` langsung. Jangan commit `.env`, `storage/`, atau `*.db`.

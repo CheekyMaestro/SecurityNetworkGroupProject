@@ -39,3 +39,28 @@ uvicorn app.main:app --reload
 ```
 
 Buka http://localhost:8000/masuk. Tambahkan `?mock=1` untuk memakai data contoh tanpa backend.
+
+### Backend: isi `.env`
+
+```
+python -c "import os,base64;print(base64.b64encode(os.urandom(32)).decode())"   # -> MASTER_SECRET
+python -c "import secrets;print(secrets.token_urlsafe(48))"                     # -> JWT_SECRET
+```
+
+Aplikasi menolak start kalau `MASTER_SECRET` atau `JWT_SECRET` kosong. Jangan bagikan `.env`: siapa pun yang memegang `MASTER_SECRET` bisa menurunkan semua kunci user.
+
+- Dokumentasi API interaktif: http://localhost:8000/docs
+- Contoh JSON untuk endpoint yang belum dicontohkan PRD: [`docs/api-contract.md`](docs/api-contract.md)
+- Test: `pytest -q`; skenario demo lewat server sungguhan: `python scripts/demo_e2e.py`
+- Hasil pengujian dan keterbatasan: [`docs/hasil-pengujian.md`](docs/hasil-pengujian.md)
+
+### Akun demo
+
+```
+python scripts/seed.py                     # password acak per akun dicetak di terminal
+python scripts/seed.py --password rahasia1 # atau satu password untuk semua akun baru
+```
+
+Membuat `elektra` (Toko Elektra), `gadgetin` (Toko Gadgetin), dan pembeli `dzaky`. Aman dijalankan berulang; akun yang sudah ada tidak diubah.
+
+Belum ada migrasi database. Kalau skema berubah setelah `git pull`, hapus `awan.db` dan folder `storage/`, lalu jalankan seed lagi.
