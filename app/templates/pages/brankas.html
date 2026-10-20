@@ -1,0 +1,37 @@
+{% extends "layouts/buyer.html" %}
+{% from "components/button.html" import button %}
+{% from "components/stat_tile.html" import stat_tile %}
+{% from "components/panel.html" import panel %}
+{% from "components/skeleton.html" import skeleton %}
+{% from "components/empty_state.html" import empty_state %}
+{% block title %}Brankas saya{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Brankas saya</h1>
+    <p class="desc">Semua video unboxing dan dokumen paket, tersimpan terenkripsi.</p>
+  </div>
+  {{ button("Simpan unboxing", variant="primary", size="lg", icon="plus", href="/unboxing/baru") }}
+</div>
+
+<div class="stat-grid">
+  {{ stat_tile("package", "Paket", "stat-packages") }}
+  {{ stat_tile("file-text", "Dokumen", "stat-docs") }}
+  {{ stat_tile("hard-drive", "Ukuran terenkripsi", "stat-size") }}
+  {{ stat_tile("shield-check", "Algoritma", value="AES · RC4 · DES") }}
+</div>
+
+<section class="section">
+  <div class="section-head">
+    <h2 class="section-title">Paket tersimpan</h2>
+  </div>
+  {% call panel(flush=True, id="packages-panel") %}
+    <div id="packages">{{ skeleton("table", n=3, cols=6) }}</div>
+  {% endcall %}
+</section>
+
+<template id="tpl-empty">
+  {{ empty_state("Belum ada unboxing tersimpan", "Rekam video saat membuka paket, lalu simpan di sini. Videonya dienkripsi dan hanya kamu yang bisa membukanya.", "Simpan unboxing", "/unboxing/baru", "plus") }}
+</template>
+{% endblock %}
+{% block scripts %}<script src="/static/js/pages/brankas.js" defer></script>{% endblock %}

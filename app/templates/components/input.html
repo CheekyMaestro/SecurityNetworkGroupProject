@@ -1,0 +1,5 @@
+{#- Input teks 32 px. mono=True untuk data teknis (NIK, no. pesanan). -#}
+{% macro input(name, type="text", value="", placeholder="", id=None, mono=False, autocomplete=None, attrs="") -%}
+<input class="input{% if mono %} input-mono{% endif %}" type="{{ type }}" name="{{ name }}" id="{{ id or name }}"
+       value="{{ value }}" placeholder="{{ placeholder }}"{% if autocomplete %} autocomplete="{{ autocomplete }}"{% endif %} {{ attrs|safe }}>
+{%- endmacro %}

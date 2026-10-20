@@ -1,0 +1,55 @@
+{% extends "layouts/focus.html" %}
+{% from "components/button.html" import button %}
+{% from "components/select.html" import select %}
+{% from "components/textarea.html" import textarea %}
+{% from "components/panel.html" import panel %}
+{% from "components/form_row.html" import form_row %}
+{% from "components/skeleton.html" import skeleton %}
+{% block title %}Ajukan klaim{% endblock %}
+{% block content %}
+<a class="back-link" href="/paket/{{ package_id }}"><i data-lucide="arrow-left"></i>Kembali ke paket</a>
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Ajukan klaim</h1>
+    <p class="desc" id="pkg-line"><span class="skeleton skeleton-text" style="width:240px"></span></p>
+  </div>
+</div>
+
+<div class="notice" style="margin-bottom:24px">
+  <i data-lucide="shield-check"></i>
+  <span><strong>Tenang, toko hanya melihat video dan dokumen paket ini.</strong> Tidak ada yang terkirim sebelum kamu menekan Kirim.</span>
+</div>
+
+<form id="claim-form" novalidate>
+  <div class="form-alert" id="form-alert" role="alert" hidden style="margin-bottom:16px"></div>
+  {% call panel(body=False) %}
+    {% call form_row("Toko tujuan", "Akun toko yang akan menerima klaim.", for_id="store_user_id") %}
+      {{ select("store_user_id", placeholder="Memuat daftar toko…", attrs="disabled") }}
+    {% endcall %}
+    {% call form_row("Keluhan", "Jelaskan singkat apa yang salah dengan barangnya.", for_id="message") %}
+      {{ textarea("message", placeholder="mis. Layar retak di pojok kanan bawah saat kotak dibuka.", rows=5, attrs='maxlength="2000"') }}
+    {% endcall %}
+  {% endcall %}
+
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Yang akan dibuka toko</h2>
+      <span class="label" id="files-count"></span>
+    </div>
+    <div class="mini-grid" id="files">{{ skeleton("text", n=2) }}</div>
+    <div class="notice notice-ok" style="margin-top:16px">
+      <i data-lucide="lock"></i>
+      <span><strong>NIK, nomor HP, dan rekeningmu tidak ikut dibagikan.</strong> Toko hanya melihat namamu dan tanda bahwa KTP sudah terverifikasi.</span>
+    </div>
+  </section>
+
+  <div class="section row" style="justify-content:flex-end;gap:8px">
+    {{ button("Kembali", size="lg", href="/paket/" ~ package_id) }}
+    {{ button("Kirim", variant="primary", size="lg", type="submit", icon="send", id="submit") }}
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>window.PACKAGE_ID = {{ package_id }};</script>
+<script src="/static/js/pages/klaim.js" defer></script>
+{% endblock %}

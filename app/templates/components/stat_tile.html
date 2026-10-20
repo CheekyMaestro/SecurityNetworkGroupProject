@@ -1,0 +1,10 @@
+{#- Kotak ikon 40×40 + label mono kapital + nilai. value_id diisi JS; skeleton tampil sampai terisi. -#}
+{% macro stat_tile(icon, label, value_id=None, value=None) -%}
+<div class="stat-tile">
+  <span class="stat-icon"><i data-lucide="{{ icon }}"></i></span>
+  <div class="grow">
+    <span class="label">{{ label }}</span>
+    <div class="stat-value truncate"{% if value_id %} id="{{ value_id }}"{% endif %}>{% if value %}{{ value }}{% else %}<span class="skeleton skeleton-text" style="width:72px;height:14px"></span>{% endif %}</div>
+  </div>
+</div>
+{%- endmacro %}

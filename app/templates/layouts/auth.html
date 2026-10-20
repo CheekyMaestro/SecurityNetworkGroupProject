@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="auth">
+  <aside class="auth-sky" aria-hidden="true">
+    <span class="cloud c1"></span><span class="cloud c2"></span><span class="cloud c3"></span>
+    <div class="auth-brand"><img src="/static/img/logo.svg" alt="">Awan</div>
+    <div class="auth-hero">
+      <img src="/static/img/logo.svg" alt="">
+      <h1>Bukti unboxing kamu, terkunci sampai dibutuhkan.</h1>
+      <p>Video, dokumen, dan data pribadimu dienkripsi sebelum disimpan. Toko hanya bisa membuka bukti paket yang kamu klaim.</p>
+    </div>
+    <div class="auth-foot">AES · RC4 · DES</div>
+  </aside>
+  <main class="auth-form-wrap">
+    <div class="auth-form">{% block content %}{% endblock %}</div>
+  </main>
+</div>
+{% endblock %}

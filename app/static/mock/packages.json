@@ -1,0 +1,8 @@
+{"items": [
+  {"id": 3, "item_name": "Monitor 24 inci", "store": "Toko Elektra", "order_no": "INV/2026/10/0412",
+   "created_at": "2026-10-11T16:45:00+07:00", "video_file_id": 12, "document_count": 2, "total_size_bytes": 190613962},
+  {"id": 4, "item_name": "Sepatu lari ukuran 42", "store": "Sportiva", "order_no": "SPV-2610-88213",
+   "created_at": "2026-10-08T19:20:00+07:00", "video_file_id": 15, "document_count": 1, "total_size_bytes": 48237384},
+  {"id": 6, "item_name": "Kabel data USB-C", "store": "Toko Elektra", "order_no": "INV/2026/10/0377",
+   "created_at": "2026-10-05T08:12:00+07:00", "video_file_id": 17, "document_count": 0, "total_size_bytes": 12582912}
+]}

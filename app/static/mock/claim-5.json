@@ -1,0 +1,8 @@
+{"id": 5, "status": "ditinjau", "message": "Layar retak di pojok kanan bawah", "created_at": "2026-10-12T14:20:00+07:00",
+ "package": {"id": 3, "item_name": "Monitor 24 inci", "order_no": "INV/2026/10/0412"},
+ "buyer": {"name": "Dzaky A.", "ktp_verified": true},
+ "store": {"id": 21, "store_name": "Toko Elektra"},
+ "files": [{"id": 12, "category": "video", "name": "unboxing-monitor.mp4", "mime_type": "video/mp4", "size_bytes": 190601216},
+           {"id": 13, "category": "document", "name": "invoice-elektra.pdf", "mime_type": "application/pdf", "size_bytes": 2888},
+           {"id": 14, "category": "document", "name": "kronologi.docx", "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "size_bytes": 9858}],
+ "replies": [{"id": 1, "author_role": "store", "author_name": "Toko Elektra", "body": "Video sudah kami terima, kami cek ke kurir dulu.", "created_at": "2026-10-13T09:05:00+07:00"}]}
