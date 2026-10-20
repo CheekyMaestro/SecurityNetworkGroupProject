@@ -1,0 +1,86 @@
+{% extends "layouts/buyer.html" %}
+{% from "components/button.html" import button %}
+{% from "components/input.html" import input %}
+{% from "components/panel.html" import panel, panel_footer %}
+{% from "components/form_row.html" import form_row %}
+{% block title %}Simpan unboxing{% endblock %}
+{% block content_class %}content-narrow{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Simpan unboxing</h1>
+    <p class="desc">Video dan dokumen dienkripsi dengan AES, RC4, dan DES sebelum disimpan.</p>
+  </div>
+</div>
+
+<form id="unboxing-form" novalidate>
+  <div class="form-alert" id="form-alert" role="alert" hidden style="margin-bottom:16px"></div>
+
+  <section>
+    <div class="section-head"><h2 class="section-title">Video</h2></div>
+    {% call panel(id="video-panel") %}
+      <input type="file" id="video-input" accept="video/mp4,video/x-matroska,video/quicktime,.mp4,.mkv,.mov" hidden>
+      <div class="dropzone" id="video-drop" tabindex="0" role="button" aria-label="Pilih video unboxing">
+        <span class="dz-icon"><i data-lucide="film"></i></span>
+        <div>Tarik video ke sini atau <span style="color:var(--brand-600)">pilih dari perangkat</span></div>
+        <div class="mono muted">MP4, MKV, MOV · maks. 100 MB</div>
+      </div>
+      <div id="video-chosen" hidden>
+        <div class="player" style="border-radius:var(--radius-md);overflow:hidden"><video id="video-preview" controls muted playsinline></video></div>
+        <div class="file-row" style="padding:12px 0 0;border:0">
+          <span class="file-icon vid"><i data-lucide="film"></i></span>
+          <div class="file-meta">
+            <div class="name" id="video-name"></div>
+            <div class="mono" id="video-size"></div>
+            <div class="progress" id="video-progress" hidden><span></span></div>
+          </div>
+          <div class="row">{{ button("Ganti", icon="replace", id="video-replace") }}</div>
+        </div>
+      </div>
+    {% endcall %}
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2 class="section-title">Info paket</h2></div>
+    {% call panel(body=False) %}
+      {% call form_row("Nama barang", "Yang tertulis di pesanan.", for_id="item_name") %}
+        {{ input("item_name", placeholder="mis. Monitor 24 inci", attrs='maxlength="120"') }}
+      {% endcall %}
+      {% call form_row("Toko", "Nama toko tempat kamu membeli.", for_id="store") %}
+        {{ input("store", placeholder="mis. Toko Elektra", attrs='maxlength="80"') }}
+      {% endcall %}
+      {% call form_row("No. pesanan", "Dari invoice atau aplikasi belanja.", for_id="order_no") %}
+        {{ input("order_no", placeholder="mis. INV/2026/10/0412", mono=True, attrs='maxlength="60" autocomplete="off" spellcheck="false"') }}
+      {% endcall %}
+    {% endcall %}
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Dokumen</h2>
+      <span class="label">Opsional</span>
+    </div>
+    {% call panel(body=False) %}
+      <input type="file" id="docs-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx" hidden>
+      <div id="docs-list"></div>
+      <div class="panel-body" id="docs-empty">
+        <div class="dropzone" id="docs-drop" tabindex="0" role="button" aria-label="Tambah dokumen" style="padding:20px 16px">
+          <span class="dz-icon"><i data-lucide="file-plus"></i></span>
+          <div>Invoice, kronologi, atau bukti lain</div>
+          <div class="mono muted">PDF, DOC, DOCX, XLS, XLSX · maks. 20 MB per file</div>
+        </div>
+      </div>
+      {% call panel_footer(note="Boleh lebih dari satu file.") %}
+        {{ button("Tambah dokumen", icon="plus", id="docs-add") }}
+      {% endcall %}
+    {% endcall %}
+  </section>
+
+  <div class="section row" style="justify-content:flex-end;gap:8px">
+    <span class="muted grow" id="upload-status" aria-live="polite"></span>
+    {{ button("Batal", size="lg", href="/brankas", id="cancel") }}
+    {{ button("Simpan ke brankas", variant="primary", size="lg", type="submit", icon="lock", id="submit") }}
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}<script src="/static/js/pages/unboxing.js" defer></script>{% endblock %}

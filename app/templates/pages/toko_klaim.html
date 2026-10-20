@@ -1,0 +1,55 @@
+{% extends "layouts/store.html" %}
+{% from "components/button.html" import button %}
+{% from "components/textarea.html" import textarea %}
+{% from "components/panel.html" import panel, panel_footer %}
+{% from "components/skeleton.html" import skeleton %}
+{% block title %}Tinjau klaim{% endblock %}
+{% block content %}
+<a class="back-link" href="/toko"><i data-lucide="arrow-left"></i>Klaim masuk</a>
+<div class="page-head">
+  <div class="grow">
+    <h1 class="page-title" id="title"><span class="skeleton skeleton-title"></span></h1>
+    <div class="meta-line" id="meta"><span class="skeleton skeleton-text" style="width:280px"></span></div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="stack-24">
+    {% call panel(flush=True) %}<div id="player">{{ skeleton("player") }}</div>{% endcall %}
+    {% call panel(title="Dokumen", icon="files", flush=True) %}<div id="docs">{{ skeleton("rows", n=2) }}</div>{% endcall %}
+    {% call panel(title="Percakapan", icon="messages-square") %}
+      <div id="thread">{{ skeleton("text", n=3) }}</div>
+      <form class="reply-box" id="reply-form" novalidate style="margin-top:16px">
+        {{ textarea("body", placeholder="Tulis pesan untuk pembeli…", rows=2, id="reply-body", attrs='maxlength="2000"') }}
+        <div class="row" style="justify-content:flex-end">{{ button("Kirim pesan", icon="send", type="submit", id="reply-submit") }}</div>
+      </form>
+    {% endcall %}
+  </div>
+
+  <div class="stack-24">
+    {% call panel(title="Pembeli", icon="user-round") %}<div id="buyer">{{ skeleton("text", n=3) }}</div>{% endcall %}
+
+    <form id="decision-form" novalidate>
+      {% call panel(title="Keputusan", icon="gavel", body=False) %}
+        <div class="panel-body stack-12">
+          <div class="form-alert" id="form-alert" role="alert" hidden></div>
+          <div class="field" role="radiogroup" aria-label="Keputusan">
+            <label class="choice"><input type="radio" name="decision" value="diterima"><span><span>Terima</span><span class="desc" style="display:block">Ganti barang atau kembalikan dana.</span></span></label>
+            <label class="choice"><input type="radio" name="decision" value="ditolak"><span><span>Tolak</span><span class="desc" style="display:block">Bukti tidak menunjukkan kerusakan dari toko.</span></span></label>
+            <label class="choice"><input type="radio" name="decision" value="ditinjau"><span><span>Minta bukti tambahan</span><span class="desc" style="display:block">Klaim tetap ditinjau sampai bukti lengkap.</span></span></label>
+          </div>
+          <div class="field">
+            <label class="field-label" for="reply">Balasan untuk pembeli</label>
+            {{ textarea("reply", placeholder="mis. Kami kirim unit pengganti besok.", rows=3, attrs='maxlength="2000"') }}
+          </div>
+        </div>
+        {% call panel_footer() %}{{ button("Simpan keputusan", variant="primary", type="submit", id="decision-submit") }}{% endcall %}
+      {% endcall %}
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>window.CLAIM_ID = {{ claim_id }};</script>
+<script src="/static/js/pages/toko_klaim.js" defer></script>
+{% endblock %}

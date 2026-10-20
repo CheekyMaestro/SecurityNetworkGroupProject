@@ -1,0 +1,25 @@
+{% extends "layouts/auth.html" %}
+{% from "components/button.html" import button %}
+{% from "components/input.html" import input %}
+{% block title %}Masuk{% endblock %}
+{% block content %}
+<h1 class="page-title">Masuk ke Awan</h1>
+<p class="desc">Lanjutkan ke brankas bukti unboxing kamu.</p>
+<form id="login-form" class="stack-16" novalidate>
+  <div class="form-alert" id="form-alert" role="alert" hidden></div>
+  <div class="field">
+    <label class="field-label" for="username">Username</label>
+    {{ input("username", autocomplete="username", attrs='autocapitalize="none" spellcheck="false" required') }}
+  </div>
+  <div class="field">
+    <label class="field-label" for="password">Password</label>
+    <div class="input-group">
+      {{ input("password", type="password", autocomplete="current-password", attrs="required") }}
+      <button class="btn btn-ghost" type="button" data-toggle-pw="password" style="width:auto"><i data-lucide="eye"></i>Lihat</button>
+    </div>
+  </div>
+  {{ button("Masuk", variant="primary", size="lg", type="submit", id="submit", attrs='style="width:100%"') }}
+</form>
+<p class="auth-switch">Belum punya akun? <a href="/daftar">Daftar</a></p>
+{% endblock %}
+{% block scripts %}<script src="/static/js/pages/auth.js" defer></script>{% endblock %}

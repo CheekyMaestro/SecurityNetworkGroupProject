@@ -1,0 +1,35 @@
+{% extends "layouts/auth.html" %}
+{% from "components/button.html" import button %}
+{% from "components/input.html" import input %}
+{% block title %}Daftar{% endblock %}
+{% block content %}
+<h1 class="page-title">Buat akun Awan</h1>
+<p class="desc">Cukup username dan password. Data pribadi diisi setelah ini.</p>
+<form id="register-form" class="stack-16" novalidate>
+  <div class="form-alert" id="form-alert" role="alert" hidden></div>
+  <div class="field">
+    <label class="field-label" for="username">Username</label>
+    {{ input("username", autocomplete="username", placeholder="mis. dzaky", attrs='autocapitalize="none" spellcheck="false" required') }}
+    <div class="field-hint">3–32 karakter: huruf kecil, angka, titik, atau garis bawah.</div>
+  </div>
+  <div class="field">
+    <label class="field-label" for="password">Password</label>
+    <div class="input-group">
+      {{ input("password", type="password", autocomplete="new-password", attrs="required") }}
+      <button class="btn btn-ghost" type="button" data-toggle-pw="password" style="width:auto"><i data-lucide="eye"></i>Lihat</button>
+    </div>
+    <div class="field-hint">Minimal 8 karakter.</div>
+  </div>
+  <div class="field">
+    <label class="field-label" for="password2">Konfirmasi password</label>
+    {{ input("password2", type="password", autocomplete="new-password", attrs="required") }}
+  </div>
+  <div class="notice">
+    <i data-lucide="lock"></i>
+    <span><strong>Datamu akan dienkripsi.</strong> Profil, foto KTP, video, dan dokumen disimpan sebagai ciphertext AES, RC4, dan DES. Password disimpan sebagai hash bcrypt.</span>
+  </div>
+  {{ button("Daftar", variant="primary", size="lg", type="submit", id="submit", attrs='style="width:100%"') }}
+</form>
+<p class="auth-switch">Sudah punya akun? <a href="/masuk">Masuk</a></p>
+{% endblock %}
+{% block scripts %}<script src="/static/js/pages/auth.js" defer></script>{% endblock %}

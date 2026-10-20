@@ -1,0 +1,9 @@
+{#- Tombol. variant: default | primary | ghost | danger. size: None (26 px) | "lg" (32 px). href → <a>. -#}
+{% macro button(label, variant="default", size=None, icon=None, href=None, type="button", id=None, attrs="") -%}
+{%- set cls = "btn" ~ (" btn-" ~ variant if variant != "default" else "") ~ (" btn-lg" if size == "lg" else "") -%}
+{%- if href -%}
+<a class="{{ cls }}" href="{{ href }}"{% if id %} id="{{ id }}"{% endif %} {{ attrs|safe }}>{% if icon %}<i data-lucide="{{ icon }}"></i>{% endif %}{{ label }}</a>
+{%- else -%}
+<button class="{{ cls }}" type="{{ type }}"{% if id %} id="{{ id }}"{% endif %} {{ attrs|safe }}>{% if icon %}<i data-lucide="{{ icon }}"></i>{% endif %}{{ label }}</button>
+{%- endif -%}
+{%- endmacro %}

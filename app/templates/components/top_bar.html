@@ -1,0 +1,34 @@
+{#- Top bar 48 px. kind: buyer | store. Nama user diisi JS (data-me) setelah /auth/me. -#}
+{% macro account_menu() -%}
+<div class="menu" data-menu>
+  <button class="avatar" type="button" data-menu-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Menu akun"><span data-me="initials"></span></button>
+  <div class="menu-pop" role="menu" hidden>
+    <div class="menu-head">
+      <div data-me="username"></div>
+      <div class="label" data-me="role"></div>
+    </div>
+    <button class="menu-item" type="button" role="menuitem" data-logout><i data-lucide="log-out"></i>Keluar</button>
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro top_bar(kind="buyer", active=None) -%}
+<header class="topbar">
+  <a class="topbar-logo" href="{{ '/toko' if kind == 'store' else '/brankas' }}" aria-label="Beranda"><img src="/static/img/logo.svg" alt=""></a>
+  <div class="crumbs">
+    {%- if kind == "store" %}
+    <span class="sep">/</span><span class="store-tag">TOKO</span>
+    <span data-me="store_name"><span class="skeleton skeleton-text" data-me-skeleton style="width:96px"></span></span>
+    {%- else %}
+    <span class="sep">/</span><span>Awan</span><span class="sep">/</span>
+    <span class="crumb-muted" data-me="username"><span class="skeleton skeleton-text" data-me-skeleton style="width:72px"></span></span>
+    {%- endif %}
+  </div>
+  {%- if kind == "store" %}
+  <nav class="topbar-tabs" aria-label="Navigasi toko">
+    <a class="topbar-tab{% if active == 'klaim' %} is-active{% endif %}" href="/toko"><i data-lucide="inbox"></i>Klaim masuk</a>
+  </nav>
+  {%- endif %}
+  <div class="topbar-right">{{ account_menu() }}</div>
+</header>
+{%- endmacro %}

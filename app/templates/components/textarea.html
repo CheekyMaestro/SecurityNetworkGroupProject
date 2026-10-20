@@ -1,0 +1,3 @@
+{% macro textarea(name, placeholder="", rows=4, id=None, value="", attrs="") -%}
+<textarea class="textarea" name="{{ name }}" id="{{ id or name }}" rows="{{ rows }}" placeholder="{{ placeholder }}" {{ attrs|safe }}>{{ value }}</textarea>
+{%- endmacro %}
