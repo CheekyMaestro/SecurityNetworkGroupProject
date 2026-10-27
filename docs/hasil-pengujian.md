@@ -44,6 +44,8 @@ python scripts/demo_e2e.py --video-mb 50   # ukuran video lain
 
 ## Performa (laptop pengembang, video 99 MB, satu kali ukur)
 
+> **Note:** the numbers below are an early single measurement. The final numbers used in the report come from `scripts/benchmark.py` (two runs, five repetitions per size); raw output is in `results/`.
+
 | Algoritma | Enkripsi (ms/MB) | Dekripsi (ms/MB) | Ukuran ciphertext |
 | --- | --- | --- | --- |
 | AES-256-CBC | 2,7 | 2,5 | asli + 1..16 byte padding |
