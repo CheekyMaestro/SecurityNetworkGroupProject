@@ -301,7 +301,7 @@ The tests check, among other things, that every cipher returns the exact origina
 
 ```bash
 python scripts/benchmark.py                 # 1, 10 and 50 MB, 5 repetitions each
-python scripts/fig.py                       # redraws the chart
+python scripts/fig.py results/<file>.csv  # redraws the chart (needs matplotlib)
 ```
 
 The script uses the same encryption classes as the server, processes data in 64 KB chunks like a real upload, discards one warm-up run, repeats each test five times, and checks every round-trip. Disk and network are excluded on purpose, so the result reflects only the cipher. Output goes to `results/`.
