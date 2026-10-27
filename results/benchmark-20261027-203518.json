@@ -1,0 +1,103 @@
+{
+  "env": {
+    "waktu": "2026-10-27T20:35:18",
+    "cpu": "x86_64",
+    "os": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "pycryptodome": "3.24.1",
+    "repeat": 5,
+    "chunk_bytes": 65536
+  },
+  "rows": [
+    {
+      "size_mb": 1,
+      "cipher": "aes",
+      "enc_ms_per_mb": 2.092,
+      "enc_sd": 0.407,
+      "dec_ms_per_mb": 1.826,
+      "dec_sd": 0.406,
+      "enc_mb_per_s": 478.1,
+      "overhead_bytes": 16
+    },
+    {
+      "size_mb": 1,
+      "cipher": "rc4",
+      "enc_ms_per_mb": 3.043,
+      "enc_sd": 0.061,
+      "dec_ms_per_mb": 2.868,
+      "dec_sd": 0.038,
+      "enc_mb_per_s": 328.6,
+      "overhead_bytes": 0
+    },
+    {
+      "size_mb": 1,
+      "cipher": "des",
+      "enc_ms_per_mb": 14.467,
+      "enc_sd": 1.657,
+      "dec_ms_per_mb": 12.67,
+      "dec_sd": 3.06,
+      "enc_mb_per_s": 69.1,
+      "overhead_bytes": 8
+    },
+    {
+      "size_mb": 10,
+      "cipher": "aes",
+      "enc_ms_per_mb": 1.939,
+      "enc_sd": 0.028,
+      "dec_ms_per_mb": 1.618,
+      "dec_sd": 0.061,
+      "enc_mb_per_s": 515.6,
+      "overhead_bytes": 16
+    },
+    {
+      "size_mb": 10,
+      "cipher": "rc4",
+      "enc_ms_per_mb": 3.215,
+      "enc_sd": 0.04,
+      "dec_ms_per_mb": 2.976,
+      "dec_sd": 0.049,
+      "enc_mb_per_s": 311.1,
+      "overhead_bytes": 0
+    },
+    {
+      "size_mb": 10,
+      "cipher": "des",
+      "enc_ms_per_mb": 12.437,
+      "enc_sd": 0.046,
+      "dec_ms_per_mb": 10.2,
+      "dec_sd": 0.058,
+      "enc_mb_per_s": 80.4,
+      "overhead_bytes": 8
+    },
+    {
+      "size_mb": 50,
+      "cipher": "aes",
+      "enc_ms_per_mb": 1.893,
+      "enc_sd": 0.004,
+      "dec_ms_per_mb": 1.82,
+      "dec_sd": 0.003,
+      "enc_mb_per_s": 528.2,
+      "overhead_bytes": 16
+    },
+    {
+      "size_mb": 50,
+      "cipher": "rc4",
+      "enc_ms_per_mb": 3.141,
+      "enc_sd": 0.007,
+      "dec_ms_per_mb": 3.137,
+      "dec_sd": 0.006,
+      "enc_mb_per_s": 318.3,
+      "overhead_bytes": 0
+    },
+    {
+      "size_mb": 50,
+      "cipher": "des",
+      "enc_ms_per_mb": 12.396,
+      "enc_sd": 0.049,
+      "dec_ms_per_mb": 10.402,
+      "dec_sd": 0.035,
+      "enc_mb_per_s": 80.7,
+      "overhead_bytes": 8
+    }
+  ]
+}
