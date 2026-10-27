@@ -335,7 +335,13 @@ These are deliberate trade-offs or things we did not have time for. Be ready to 
 
 ---
 
-## 10. Glossary
+## 10. Full Demo 
+
+**Full demo video:** [watch the complete walkthrough on Google Drive](https://drive.google.com/file/d/15lFsPqCemyviRoEnEO90T4IT1u_WnbbF/view?usp=sharing)
+
+---
+
+## 11. Glossary
 
 | Term                       | Plain meaning                                                                                                                               |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
