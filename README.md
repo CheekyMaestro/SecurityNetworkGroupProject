@@ -1,4 +1,4 @@
-# Awan: an encrypted evidence vault for online-shop disputes
+# Awan: an encrypted evidence vault for online-shop disputesv
 
 Information Security (Keamanan Informasi), ITS, Assignment 1, Group 11.
 
